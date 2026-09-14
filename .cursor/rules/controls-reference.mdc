@@ -1,0 +1,109 @@
+---
+description: 可复用控件参考（Framework 自有控件与 RW.Common.WPF 通用控件）。编辑 .xaml 文件时按需加载
+alwaysApply: false
+globs: "**/*.xaml"
+---
+
+# 可复用控件参考
+
+写新控件之前，先在下面两处找现成的：`SimpleCollectionHub.Framework/Controls/` 和 `RW.Common.WPF.Controls`。
+
+---
+
+## Framework 自有控件
+
+**命名空间**：`SimpleCollectionHub.Framework.Controls`，XAML 前缀 `f:`（`xmlns:f="SimpleCollectionHub.Framework"`）
+**位置**：`Source/SimpleCollectionHub.Framework/Controls/`
+
+| 控件 | 基类 | 说明 |
+|---|---|---|
+| `WindowBase` | `Window` | 项目窗口基类，统一图标、标题、启动位置等 |
+| `DialogWindowWrapper` | `Window` | `DialogService` 弹出对话框时用的宿主窗口 |
+
+这两个通常由框架内部使用，业务代码很少直接实例化。
+
+---
+
+## RW.Common.WPF 通用控件
+
+**命名空间**：`RW.Common.WPF.Controls`（外部 NuGet 包）
+**XAML 前缀**：`wpf:`（`xmlns:wpf="RW.Common.WPF"`）
+**源码**：`C:\Users\RainbowWolfer\source\repos\RW.Common\RW.Common.WPF\Controls\`
+
+| 控件 | 基类 | 用途 |
+|---|---|---|
+| `TitleContent` | `ContentControl` | 给表单控件加标题标签（上方或左侧） |
+| `NumberBox` | `TextBox` | 数字输入框，带上下调节按钮、`Value`/`Increment`/`Minimum`/`Maximum` |
+| `EnumBindingComboBox` | `ComboBox` | 直接绑定枚举类型，自动填充选项 |
+| `SpacingStackPanel` | `Panel` | 带 `HorizontalSpacing`/`VerticalSpacing` 的堆叠面板，替代手写 `Margin` |
+| `AutoColumnsUniformGrid` | `UniformGrid` | 按可用宽度自动计算列数的均分网格 |
+| `MenuButton` | `Button` | 点击弹出菜单的按钮 |
+| `ButtonPopup` / `CustomPopup` | `Popup` | 定位与关闭行为更可控的弹出层 |
+| `DataGridExtended` | `DataGrid` | 增强版 DataGrid |
+| `ClippingBorder` | `Border` | 按 `CornerRadius` 真正裁剪子元素的圆角边框 |
+| `FontIcon` | `TextBlock` | **界面图标首选**，配合项目自带的 Segoe Fluent Icons |
+| `NotifyIcon` | `FrameworkElement` | 系统托盘图标 |
+
+> 具体的依赖属性以源码为准。用之前先 Grep 对应的 `.cs` 文件确认属性名，不要凭印象写。
+
+### FontIcon — 字体图标
+
+界面上的按钮、工具栏、菜单图标都用它。项目在 `FrameworkTheme.xaml` 里给它挂了隐式默认样式
+（`FontIconBase`），已绑定项目自带的 `Segoe Fluent Icons.ttf`，所以直接写码位就能用：
+
+```xml
+<wpf:FontIcon Text="&#xE721;"/>
+<wpf:FontIcon FontSize="32" Foreground="Red" Text="&#xE72C;"/>
+
+<Button Width="32" Height="32" ToolTip="设置">
+    <wpf:FontIcon Text="&#xE713;"/>
+</Button>
+```
+
+因为继承自 `TextBlock`，用 `FontSize` 控制大小、`Foreground` 控制颜色（支持渐变笔刷）。
+自定义 `Style` 时必须 `BasedOn="{StaticResource FontIconBase}"`，否则会丢掉 `FontFamily`。
+完整说明见 `icon-usage` 规则。
+
+### TitleContent — 带标题的表单容器
+
+最常用的一个，为表单输入控件添加标题标签，标题可放在内容上方（`Top`）或左侧（`Left`）。
+
+| 属性 | 类型 | 默认值 | 说明 |
+|---|---|---|---|
+| `Title` | `object` | `null` | 标题内容（通常为字符串） |
+| `TitleWidth` | `double` | `NaN` | 标题宽度（`Left` 模式下生效） |
+| `TitleHorizontalAlignment` | `HorizontalAlignment` | `Left` | 标题水平对齐 |
+| `TitleVerticalAlignment` | `VerticalAlignment` | `Top` | 标题垂直对齐 |
+| `Placement` | `TitlePlacementType` | `Top` | 标题位置：`Top` 或 `Left` |
+| `TopTitlePadding` | `Thickness` | `(7,2,0,1)` | `Top` 模式下标题内边距 |
+| `LeftTitlePadding` | `Thickness` | `(0,0,6,0)` | `Left` 模式下标题内边距 |
+
+```xml
+<!-- 标题在上方 -->
+<wpf:TitleContent Title="请输入。。。">
+    <TextBox/>
+</wpf:TitleContent>
+
+<!-- 标题在左侧 + 固定宽度 -->
+<wpf:TitleContent Title="名称" Placement="Left" TitleWidth="80">
+    <TextBox/>
+</wpf:TitleContent>
+```
+
+### SpacingStackPanel — 带间距的堆叠面板
+
+比给每个子元素手写 `Margin` 更干净，也更符合 DRY：
+
+```xml
+<wpf:SpacingStackPanel Orientation="Horizontal" HorizontalSpacing="8">
+    <wpf:FontIcon Text="&#xE72C;"/>
+    <TextBlock Text="刷新" VerticalAlignment="Center"/>
+</wpf:SpacingStackPanel>
+```
+
+---
+
+## 绑定辅助（RW.Common.WPF.Extensions）
+
+`BindingProxy` 与 `CommandProxy` 也在 `wpf:` 前缀下，用于 `DataTemplate` / `ContextMenu` 内的绑定，
+用法见 `wpf-xaml` 规则的「BindingProxy + CommandProxy」章节。

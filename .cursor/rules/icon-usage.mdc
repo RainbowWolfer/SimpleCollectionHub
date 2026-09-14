@@ -1,0 +1,319 @@
+---
+description: 图标与图片资源使用规范（Segoe Fluent Icons 字体图标、T4 生成的位图资源、IconHelper），编辑 .xaml 或 .cs 时按需加载
+alwaysApply: false
+globs: "**/*.xaml", "**/*.cs"
+---
+
+# 图标与图片资源使用规范
+
+项目有两套并存的图标机制，按用途选择：
+
+| 用途 | 机制 | 入口 |
+|---|---|---|
+| 界面图标（按钮、工具栏、菜单、状态指示） | **Segoe Fluent Icons 字体图标** | `<wpf:FontIcon Text="&#xE721;"/>` |
+| 应用图标、模块图标、Logo、插图 | **位图资源（T4 生成）** | `{StaticResource AppIcon_PNG}` / `IconResources.AppIcon_PNG` |
+
+**强制遵守：**
+
+1. 界面图标优先用 `wpf:FontIcon` + Segoe Fluent Icons 码位，可随 `Foreground` 调色、随 `FontSize` 缩放
+2. 位图资源一律走 T4 管线，在业务代码里用生成的资源键 / 常量，不手写 `pack://` 字符串或相对路径
+3. 找不到合适的图标时，用语义最近的占位并加 `TODO` 注释告知用户，不要编造不存在的资源键
+4. T4 生成的 `.cs` / `.xaml` 由工具维护，改图标要改源文件后重新运行 T4
+
+---
+
+## 一、字体图标（Segoe Fluent Icons）
+
+字体文件随项目分发：`SimpleCollectionHub.Resources/Fonts/Segoe Fluent Icons.ttf`，
+以 `Resource` 形式编译进 Resources 程序集，**不依赖用户机器上是否装了这个字体**。
+
+资源链路：
+
+```
+Resources/Fonts/Segoe Fluent Icons.ttf
+        ↓  ResourcesGeneric.xaml 里声明 FontFamily
+   {StaticResource IconPack}
+        ↓  FrameworkTheme.xaml 里做成 wpf:FontIcon 的默认样式
+   FontIconBase → <Style TargetType="wpf:FontIcon"/>
+```
+
+因为挂了隐式默认样式，`wpf:FontIcon` 开箱即用，**不需要**每次手写 `FontFamily`。
+
+### 基本用法
+
+前缀：`xmlns:wpf="RW.Common.WPF"`（`FontIcon` 来自 `RW.Common.WPF.Controls`，继承自 `TextBlock`）。
+
+```xml
+<!-- 默认 16 号、居中 -->
+<wpf:FontIcon Text="&#xE721;"/>
+
+<!-- 调整大小与颜色 -->
+<wpf:FontIcon FontSize="32" Foreground="Red" Text="&#xE72C;"/>
+
+<!-- 渐变色 -->
+<wpf:FontIcon FontSize="32" Text="&#xE734;">
+    <wpf:FontIcon.Foreground>
+        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Offset="0" Color="#3070F0"/>
+            <GradientStop Offset="1" Color="#A855F7"/>
+        </LinearGradientBrush>
+    </wpf:FontIcon.Foreground>
+</wpf:FontIcon>
+```
+
+### 按钮 / 工具栏
+
+```xml
+<Button Width="32" Height="32" Command="{Binding SettingsCommand}" ToolTip="设置">
+    <wpf:FontIcon Text="&#xE713;"/>
+</Button>
+
+<wpf:SpacingStackPanel Orientation="Horizontal" HorizontalSpacing="8">
+    <Button ToolTip="刷新"><wpf:FontIcon Text="&#xE72C;"/></Button>
+    <Button ToolTip="删除"><wpf:FontIcon Text="&#xE74D;"/></Button>
+</wpf:SpacingStackPanel>
+```
+
+### 图标 + 文字
+
+```xml
+<wpf:SpacingStackPanel Orientation="Horizontal" HorizontalSpacing="8">
+    <wpf:FontIcon Text="&#xE72C;"/>
+    <TextBlock Text="刷新" VerticalAlignment="Center"/>
+</wpf:SpacingStackPanel>
+```
+
+### MenuItem.Icon
+
+```xml
+<ContextMenu>
+    <MenuItem Header="打开" Command="{Binding OpenCommand}">
+        <MenuItem.Icon>
+            <wpf:FontIcon FontSize="14" Text="&#xE8E5;"/>
+        </MenuItem.Icon>
+    </MenuItem>
+</ContextMenu>
+```
+
+### 按状态切换图标
+
+字体图标是 `Text` 属性，用 `DataTrigger` 切换即可，无需换资源：
+
+```xml
+<wpf:FontIcon>
+    <wpf:FontIcon.Style>
+        <Style TargetType="wpf:FontIcon" BasedOn="{StaticResource FontIconBase}">
+            <Setter Property="Text" Value="&#xE8B7;"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsFavorite}" Value="True">
+                    <Setter Property="Text" Value="&#xE8A5;"/>
+                    <Setter Property="Foreground" Value="{DynamicResource WarningBrush}"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </wpf:FontIcon.Style>
+</wpf:FontIcon>
+```
+
+> 给 `wpf:FontIcon` 写自定义 `Style` 时，必须 `BasedOn="{StaticResource FontIconBase}"`
+> 或 `BasedOn="{StaticResource {x:Type wpf:FontIcon}}"`，否则会丢掉 `FontFamily`，图标显示成方框。
+
+### 普通 TextBlock 上用图标字体
+
+个别场景需要在 `TextBlock` / `Run` 里混排图标，用 `IconPack` 字体资源：
+
+```xml
+<TextBlock FontFamily="{StaticResource IconPack}" FontSize="16" Text="&#xE700;"/>
+```
+
+### 码位从哪来
+
+Segoe Fluent Icons 的码位表参见微软官方文档
+[Segoe Fluent Icons font](https://learn.microsoft.com/windows/apps/design/style/segoe-fluent-icons-font)。
+常用几个：
+
+| 码位 | 含义 | 码位 | 含义 |
+|---|---|---|---|
+| `&#xE700;` | 汉堡菜单 | `&#xE74D;` | 删除 |
+| `&#xE711;` | 关闭 | `&#xE768;` | 播放 |
+| `&#xE713;` | 设置 | `&#xE769;` | 暂停 |
+| `&#xE721;` | 搜索 | `&#xE8A5;` | 书签（实心） |
+| `&#xE72C;` | 刷新 | `&#xE8B7;` | 书签（空心） |
+| `&#xE734;` | 收藏（空心） | `&#xE8E5;` | 打开文件 |
+| `&#xE738;` | 收藏（实心） | `&#xE896;` | 下载 |
+
+写码位前**先确认该字形在 Segoe Fluent Icons 中存在**，不要凭印象编造。
+
+---
+
+## 二、位图资源（T4 管线）
+
+应用图标、模块图标、Logo、插图这类彩色位图走 Resources 项目的 T4 管线。
+图标和图片是两条结构相同、只是目录不同的管线：
+
+```
+Icons/*.png|.ico|.jpg|.gif          Images/*.png|.ico|.jpg|.gif
+        ↓                                   ↓
+   Icons/IconResources.tt              Images/ImageResources.tt
+   Icons/Icons.tt                      Images/Images.tt
+        ↓                                   ↓
+   IconResources.cs (pack URI 常量)    ImageResources.cs
+   Icons.xaml (BitmapImage 字典)       Images.xaml
+        ↓                                   ↓
+        └──────── ResourcesGeneric.xaml ────┘
+                        ↓
+                 FrameworkTheme.xaml → App.xaml
+```
+
+### 核心组件
+
+| 组件 | 文件位置 | 说明 |
+|---|---|---|
+| 图标源文件 | `SimpleCollectionHub.Resources/Icons/*.png\|.ico` | 应用图标、模块图标 |
+| 图片源文件 | `SimpleCollectionHub.Resources/Images/*.png\|.ico` | 较大的插图 / 背景图 |
+| `IconResources` | `SimpleCollectionHub.Resources/Icons/IconResources.cs` | **T4 生成**，C# 侧 pack URI 常量 |
+| `Icons.xaml` | `SimpleCollectionHub.Resources/Icons/Icons.xaml` | **T4 生成**，XAML 侧 `BitmapImage` 资源字典 |
+| `ImageResources` / `Images.xaml` | `SimpleCollectionHub.Resources/Images/` | 同上，针对 Images 目录 |
+| `ResourcesGeneric.xaml` | `SimpleCollectionHub.Resources/ResourcesGeneric.xaml` | 合并字典 + 声明 `IconPack` 字体 |
+| `IconHelper` | `SimpleCollectionHub.Framework/Helpers/IconHelper.cs` | pack URI ↔ `ImageSource` ↔ `Image` 控件 |
+
+### 命名规则
+
+T4 按「**文件名 + 下划线 + 大写扩展名**」生成资源键，`-` 与空格替换成 `_`：
+
+| 源文件 | 资源键 / 属性名 |
+|---|---|
+| `Icons/AppIcon.png` | `AppIcon_PNG` |
+| `Icons/AppIcon.ico` | `AppIcon_ICO` |
+| `Icons/device-online.png` | `device_online_PNG` |
+
+位图的颜色由图片本身决定，`Foreground` 对它无效；需要多种配色就准备多个文件，
+或者改用字体图标。
+
+### XAML 中使用
+
+资源键已经通过 `ResourcesGeneric.xaml` → `FrameworkTheme.xaml` 合并进 `App.xaml`，全局可用：
+
+```xml
+<Image Source="{StaticResource AppIcon_PNG}" Width="20" Height="20"/>
+<Image Source="{StaticResource AppIcon_PNG}" Width="48" Height="48"/>
+
+<!-- 绑定 ViewModel 提供的 ImageSource -->
+<Image Source="{Binding StatusIcon, Mode=OneWay}" Width="24" Height="24"/>
+```
+
+### C# 中使用
+
+```csharp
+using SimpleCollectionHub.Framework.Helpers;
+using SimpleCollectionHub.Resources.Icons;
+
+internal class MyViewModel : ViewModelBaseEx
+{
+    // pack URI 字符串
+    public string AppIconUri { get; } = IconResources.AppIcon_PNG;
+
+    // 转成 ImageSource
+    public ImageSource AppIcon { get; } = IconResources.AppIcon_PNG.ToImageSource();
+}
+```
+
+`IconHelper` API：
+
+| 方法 | 签名 | 用途 |
+|---|---|---|
+| `ToImageSource()` | `string → ImageSource` | pack URI 转 `BitmapImage` |
+| `ToIcon()` | `object → ImageSource` | 统一入口，接受 pack URI 或已有 `ImageSource` |
+| `ToImage()` | `ImageSource → Image` | 生成不限尺寸的 `Image` 控件 |
+| `ToContextMenuIcon()` | `ImageSource → Image` | 生成固定 16×16 的 `Image`，用于右键菜单 |
+
+```csharp
+// 按状态切换位图
+public ImageSource StatusIcon => (isOnline
+    ? IconResources.DeviceOnline_PNG
+    : IconResources.DeviceOffline_PNG).ToImageSource();
+```
+
+### 添加新位图的流程
+
+1. 把文件（`.png` / `.ico` / `.jpg` / `.gif`）放进 `Source/SimpleCollectionHub.Resources/Icons/`
+   （大图 / 插图放 `Images/`）
+2. 确认 `.csproj` 中的 `Resource` 通配符已覆盖该文件（通常无需手动改）
+3. Visual Studio 里右键 `IconResources.tt` 和 `Icons.tt` → **运行自定义工具**
+   （或菜单「生成」→「转换所有 T4 模板」）
+4. 重新编译，新的 `Xxx_PNG` 资源键与 C# 常量即可使用
+
+> T4 模板已设置 `encoding="utf-8"`，保持该设置；改回默认会按系统代码页输出，
+> 在非中文环境下产生乱码。
+
+---
+
+## 找不到合适图标时
+
+```csharp
+// TODO: 缺少"网络设置"图标，暂用 AppIcon 占位。
+// 补齐方式：把新图标放入 Resources/Icons/ 后重新运行 T4。
+public ImageSource NetworkSettingsIcon { get; } = IconResources.AppIcon_PNG.ToImageSource();
+```
+
+规则：选语义最接近的现有资源、注释说明补齐方式、加 `TODO` 便于跟踪。
+
+---
+
+## 常见错误
+
+### ❌ 自定义 FontIcon 样式时丢掉 BasedOn
+
+```xml
+<!-- FontFamily 丢失，图标渲染成方框 -->
+<Style TargetType="wpf:FontIcon">
+    <Setter Property="Text" Value="&#xE8B7;"/>
+</Style>
+```
+
+正确写法加上 `BasedOn="{StaticResource FontIconBase}"`。
+
+### ❌ 手写 pack URI 或相对路径
+
+```csharp
+// 绕过 T4，改名/移动文件后不会有编译错误，只会运行时崩
+public ImageSource MyIcon => new BitmapImage(
+    new Uri("pack://application:,,,/MyApp.Resources;component/Icons/AppIcon.png")
+);
+```
+
+### ❌ 用其它 Windows 内置图标字体
+
+只用项目自带的 `Segoe Fluent Icons.ttf`。不要引用 `Segoe MDL2 Assets`、`Segoe UI Symbol`
+等其它系统字体——它们的码位表与 Fluent 不一致，且在不同 Windows 版本上表现不同。
+
+```xml
+<!-- ❌ -->
+<TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE109;"/>
+```
+
+### ❌ 试图用 Foreground 给位图改色
+
+```xml
+<!-- 位图颜色由文件决定；需要动态改色请改用 wpf:FontIcon -->
+<Image Source="{StaticResource AppIcon_PNG}" Foreground="Red"/>
+```
+
+---
+
+## 最佳实践总结
+
+### ✅ DO
+
+1. 界面图标用 `wpf:FontIcon` + Segoe Fluent Icons 码位，靠 `Foreground` / `FontSize` 控制外观
+2. 自定义 `wpf:FontIcon` 样式时 `BasedOn="{StaticResource FontIconBase}"`
+3. 应用 / 模块图标用 T4 生成的 `{StaticResource Xxx_PNG}` 与 `IconResources.Xxx_PNG`
+4. 新增位图走「放文件 → 跑 T4 → 编译」三步
+5. 找不到图标时占位 + `TODO` 注释
+
+### ❌ DON'T
+
+1. 不要手写 `pack://` 字符串
+2. 不要引用 `Segoe MDL2 Assets` 等其它系统图标字体
+3. 不要指望 `Foreground` 能给位图改色
+4. 不要手动编辑 T4 生成的 `IconResources.cs` / `Icons.xaml`

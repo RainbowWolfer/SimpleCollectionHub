@@ -1,0 +1,324 @@
+---
+description: XAML 视图编写约定（头部模板、数据绑定、BindingProxy、DRY、颜色、布局注释、枚举绑定等），编辑 .xaml 文件时生效
+alwaysApply: false
+globs: "**/*.xaml"
+---
+
+# XAML 视图编写约定
+
+## View XAML 头部模板
+
+从 `Source/XAML_Preset.txt` 复制 xmlns 声明：
+
+```xml
+<UserControl
+    x:Class="SimpleCollectionHub.<模块名>.Views.XxxView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:SimpleCollectionHub.<模块名>.Views"
+    xmlns:base="RW.Base.WPF"
+    xmlns:f="SimpleCollectionHub.Framework"
+    xmlns:res="SimpleCollectionHub.Resources"
+    xmlns:wpf="RW.Common.WPF"
+    xmlns:s="clr-namespace:SimpleCollectionHub.Strings;assembly=SimpleCollectionHub.Strings"
+    xmlns:dxmvvm="http://schemas.devexpress.com/winfx/2008/xaml/mvvm"
+    d:DataContext="{d:DesignInstance Type=local:XxxViewModel}"
+    Style="{DynamicResource UserControlStyle}"
+    DataContext="{base:DISource Type=local:XxxViewModel}"
+    d:DesignHeight="450"
+    d:DesignWidth="800">
+```
+
+- `{base:DISource Type=local:XxxViewModel}` 从 DI 容器解析并绑定 ViewModel
+- `d:DataContext="{d:DesignInstance Type=local:XxxViewModel}"` 提供设计时数据
+- `UserControlStyle` 与 `ViewModelBaseEx` 强相关，必须搭配使用
+
+**前缀含义**：`base:` = `RW.Base.WPF`（`DISource`、各类 ViewModel 服务）；
+`wpf:` = `RW.Common.WPF`（通用控件、转换器、`BindingProxy`/`CommandProxy`）；
+`f:` = 本项目 Framework；`res:` = 本项目 Resources。
+**没有 `shared:` 前缀**，项目里不存在 `SimpleCollectionHub.Shared` 程序集。
+
+## BindingProxy + CommandProxy（DataTemplate/ContextMenu 绑定）
+
+**在 `DataTemplate`、`ContextMenu`、`DataGridTemplateColumn.CellTemplate` 中禁止使用 `RelativeSource AncestorType`，必须用 `BindingProxy` + `CommandProxy`。**
+
+### UserControl.Resources 注册
+
+```xml
+<UserControl.Resources>
+    <!-- ViewModel 代理：用于访问 ViewModel 的属性（如 SelectedItem） -->
+    <wpf:BindingProxy x:Key="ViewModel" Data="{Binding}"/>
+    <!-- 命令代理：用于在模板内引用 ViewModel 的命令 -->
+    <wpf:CommandProxy x:Key="ToggleCurveCommand" Command="{Binding ToggleCurveCommand}"/>
+    <wpf:CommandProxy x:Key="ShowAllCurvesCommand" Command="{Binding ShowAllCurvesCommand}"/>
+</UserControl.Resources>
+```
+
+**`BindingProxy` 映射关系**：`Data="{Binding}"` 把 ViewModel 存到 `BindingProxy.Data`。引用时 `Path=Data.SelectedItem` 中 `Data` 对应 `BindingProxy.Data`（即 ViewModel）。
+
+### DataTemplate（CellTemplate）中
+
+Command 用 CommandProxy，行数据用 `{Binding}`：
+
+```xml
+<Button Command="{StaticResource ToggleCurveCommand}" CommandParameter="{Binding}"/>
+```
+
+### ContextMenu 中
+
+Command 用 CommandProxy，CommandParameter 用 BindingProxy 取 ViewModel 属性：
+
+```xml
+<MenuItem
+    Command="{StaticResource ToggleCurveCommand}"
+    CommandParameter="{Binding Source={StaticResource ViewModel}, Path=Data.SelectedItem}"
+    Header="显示/隐藏"/>
+```
+
+### DataGrid 右键菜单：两种模式
+
+- **行右键菜单**（点击在某行上）：通过 `DataGrid.RowStyle` 设置 `ContextMenu`，`CommandParameter="{Binding}"`
+- **DataGrid 通用右键菜单**（不要求点在行上）：通过 `DataGrid.ContextMenu`，`CommandParameter` 用 `BindingProxy` 取 `SelectedItem`
+
+```xml
+<!-- 行右键 -->
+<DataGrid.RowStyle>
+    <Style TargetType="DataGridRow" BasedOn="{StaticResource DataGridRow}">
+        <Setter Property="ContextMenu">
+            <Setter.Value>
+                <ContextMenu>
+                    <MenuItem Command="{StaticResource ToggleCurveCommand}" CommandParameter="{Binding}" Header="显示/隐藏"/>
+                    <MenuItem Command="{StaticResource ShowAllCurvesCommand}" Header="全部显示"/>
+                </ContextMenu>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</DataGrid.RowStyle>
+
+<!-- 通用右键 -->
+<DataGrid.ContextMenu>
+    <ContextMenu>
+        <MenuItem
+            Command="{StaticResource ToggleCurveCommand}"
+            CommandParameter="{Binding Source={StaticResource ViewModel}, Path=Data.SelectedItem}"
+            Header="显示/隐藏"/>
+    </ContextMenu>
+</DataGrid.ContextMenu>
+```
+
+### 禁止写法
+
+```xml
+<!-- ❌ 禁止 RelativeSource AncestorType -->
+<MenuItem Command="{Binding DataContext.XXX, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+<Button Command="{Binding DataContext.XXX, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+<MenuItem CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+```
+
+## XAML DRY 原则
+
+重复的 XAML 控件组合必须提取，按优先级：
+
+| 重复类型 | 提取方式 |
+|---|---|
+| 相同控件 + 属性（多处） | `Style`（TargetType）或 `ControlTemplate` |
+| 相同布局块（多视图） | 独立 `UserControl` |
+| 仅当前 View 内重复 | `DataTemplate` + `ContentControl` |
+| 相同 Converter 组合 | 封装为单一 `IMultiValueConverter` |
+
+## 颜色写法
+
+优先使用十六进制字符串，禁止 `Color.FromRgb()`/`Color.FromArgb()`：
+
+```xml
+<!-- ✅ -->
+<Border Background="#FF5733"/>
+<Rectangle Fill="#80000000"/>
+<!-- AA 为 0xFF 时可省略 -->
+<Border Background="#FF5733"/>
+```
+
+C# 侧：`"#FF5733".toColor()`、`"#80000000".toColor()`。
+
+## 绑定模式（Mode）与更新触发（UpdateSourceTrigger）
+
+### 双向绑定：必须加 UpdateSourceTrigger=PropertyChanged
+
+**默认情况下 WPF 双向绑定在控件失去焦点时才更新源属性**，这会导致 ViewModel 属性值与 UI 不同步。所有双向绑定的属性必须在 Binding 中明确添加 `UpdateSourceTrigger=PropertyChanged`，确保输入内容即时同步：
+
+```xml
+<!-- ✅ 双向绑定加 UpdateSourceTrigger -->
+<TextBox Text="{Binding UserName, UpdateSourceTrigger=PropertyChanged}"/>
+<TextBox Text="{Binding UserName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+
+<!-- ❌ 缺失 UpdateSourceTrigger，失焦后才更新 ViewModel -->
+<TextBox Text="{Binding UserName}"/>
+```
+
+### 单向绑定：必须加 Mode=OneWay
+
+如果设计上某绑定不需要回写数据，**必须显式加 `Mode=OneWay`**，避免双向绑定产生的警告和不必要开销：
+
+```xml
+<!-- ✅ IsReadOnly 控件加 Mode=OneWay -->
+<TextBox Text="{Binding Path, Mode=OneWay}" IsReadOnly="True"/>
+<TextBlock Text="{Binding Description, Mode=OneWay}"/>
+```
+
+### Run 绑定：强制 OneWay
+
+**`<TextBlock>` 的 `<Run>` 绑定时必须加 `Mode=OneWay`**，否则会引发警告：
+
+```xml
+<!-- ✅ 正确：Run 必须加 Mode=OneWay -->
+<TextBlock>
+    <Run Text="{Binding UserName, Mode=OneWay}"/>
+    <Run Text="{Binding Timestamp, Mode=OneWay}"/>
+</TextBlock>
+
+<!-- ❌ 错误：Run 未指定 Mode，产生警告 -->
+<TextBlock>
+    <Run Text="{Binding UserName}"/>
+    <Run Text="{Binding Timestamp}"/>
+</TextBlock>
+```
+
+## Style/Triggers 使用原则
+
+优先用 `Binding` 或 `MultiBinding+Converter` 控制可见性。仅以下场景用 `Style/Triggers`：
+
+- 需同时设置多个 `Setter`（Visibility + Opacity + Background 等）
+- 颜色相关的条件控制
+- 不写 Style 就要新建 Converter 的复杂场景
+
+```xml
+<!-- ✅ Binding -->
+<TextBlock Visibility="{Binding IsVisible, Converter={StaticResource BoolToVisibilityConverter}}"/>
+
+<!-- ✅ 多属性场景用 Trigger -->
+<Style TargetType="Border">
+    <Style.Triggers>
+        <DataTrigger Binding="{Binding IsSelected}" Value="True">
+            <Setter Property="Visibility" Value="Visible"/>
+            <Setter Property="Opacity" Value="1.0"/>
+            <Setter Property="Background" Value="#FF5733"/>
+        </DataTrigger>
+    </Style.Triggers>
+</Style>
+```
+
+## 布局注释
+
+主要布局分块/区域前加 `<!-- -->` 注释标明用途。复杂视图（多面板、多 Tab、对话框）必须注释；简单单控件视图可省略：
+
+```xml
+<Grid>
+    <!-- 顶部工具栏 -->
+    <Border Grid.Row="0"> ... </Border>
+    <!-- 左侧导航树 -->
+    <TreeView Grid.Column="0"/>
+    <!-- 主内容区 -->
+    <ContentControl Grid.Column="1" Content="{Binding CurrentView}"/>
+    <!-- 底部状态栏 -->
+    <StatusBar Grid.Row="2"/>
+</Grid>
+```
+
+## LoadingCover / LoadingStatusIndicator
+
+```xml
+<!-- 在内容 Grid 之上放置 LoadingCover 作为覆盖层 -->
+<Grid>
+    <ContentControl Content="{Binding ...}"/>
+    <f:LoadingCover LoadingStatus="{Binding LoadingStatus}" RefreshCommand="{Binding LoadCommand}"/>
+</Grid>
+```
+
+`LoadingCover` 三态：
+- 加载中：半透明遮罩 + 环形进度 + Message 文字
+- 错误：半透明遮罩 + 警告图标 + ErrorMessage + 刷新按钮 + 复制错误按钮
+- 成功：完全隐藏
+
+轻量级内联状态：
+
+```xml
+<f:LoadingStatusIndicator LoadingStatus="{Binding LoadingStatus}"/>
+```
+
+## 枚举绑定
+
+### EnumDisplayConverter（XAML）
+
+```xml
+<UserControl.Resources>
+    <conv:EnumDisplayConverter x:Key="EnumDisplayConverter"/>
+</UserControl.Resources>
+
+<!-- 直接绑定枚举值 -->
+<TextBlock Text="{Binding Status, Converter={StaticResource EnumDisplayConverter}}"/>
+```
+
+### ComboBox 绑定枚举（推荐：ViewModel 提供列表）
+
+```csharp
+// ViewModel
+public IReadOnlyList<MyStatus> StatusList { get; } = Enum.GetValues(typeof(MyStatus)).Cast<MyStatus>().ToList();
+
+public MyStatus SelectedStatus
+{
+    get => GetProperty(() => SelectedStatus);
+    set => SetProperty(() => SelectedStatus, value);
+}
+```
+
+```xml
+<ComboBox ItemsSource="{Binding StatusList}"
+          SelectedItem="{Binding SelectedStatus}">
+    <ComboBox.ItemTemplate>
+        <DataTemplate>
+            <TextBlock Text="{Binding ., Converter={StaticResource EnumDisplayConverter}}"/>
+        </DataTemplate>
+    </ComboBox.ItemTemplate>
+</ComboBox>
+```
+
+### C# 获取枚举显示文本
+
+```csharp
+string displayText = MyStatus.Active.GetEnumDisplay();
+```
+
+EnumDisplayService 内部实现和自定义逻辑详见 `reference-enum-display` skill。
+
+## 图标
+
+界面图标用 `wpf:FontIcon` + 项目自带 Segoe Fluent Icons 的码位，可调色可缩放：
+
+```xml
+<wpf:FontIcon Text="&#xE721;"/>
+<wpf:FontIcon FontSize="24" Foreground="Red" Text="&#xE72C;"/>
+
+<MenuItem Header="打开">
+    <MenuItem.Icon>
+        <wpf:FontIcon FontSize="14" Text="&#xE8E5;"/>
+    </MenuItem.Icon>
+</MenuItem>
+```
+
+应用图标、模块图标、Logo 这类彩色位图用 T4 生成的全局资源键：
+
+```xml
+<Image Source="{StaticResource AppIcon_PNG}" Width="20" Height="20"/>
+```
+
+两者都不需要 MarkupExtension。完整说明见 `icon-usage` 规则。
+
+## 自定义 MarkupExtension
+
+新增 MarkupExtension 时放在 `SimpleCollectionHub.Framework/MarkupExtensions/`，
+并在 `Framework/Properties/AssemblyInfo.cs` 中取消注释对应的 `XmlnsDefinition`，
+这样 XAML 里就能用 `f:` 前缀访问：
+
+```csharp
+[assembly: XmlnsDefinition("SimpleCollectionHub.Framework", "SimpleCollectionHub.Framework.MarkupExtensions")]
+```

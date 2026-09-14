@@ -1,0 +1,39 @@
+<UserControl
+	x:Class="SimpleCollectionHub.Views.Dialogs.AddGroupDialog"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:base="RW.Base.WPF"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:dxmvvm="http://schemas.devexpress.com/winfx/2008/xaml/mvvm"
+	xmlns:f="SimpleCollectionHub.Framework"
+	xmlns:local="clr-namespace:SimpleCollectionHub.Views.Dialogs"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:res="SimpleCollectionHub.Resources"
+	xmlns:s="clr-namespace:SimpleCollectionHub.Strings;assembly=SimpleCollectionHub.Strings"
+	xmlns:wpf="RW.Common.WPF"
+	d:Background="White"
+	d:DataContext="{d:DesignInstance Type=local:AddGroupDialogViewModel}"
+	Style="{StaticResource DialogStyle.Base}"
+	DataContext="{base:DISource Type=local:AddGroupDialogViewModel}"
+	mc:Ignorable="d">
+
+	<StackPanel Width="400">
+		<TextBlock
+			Margin="0,0,0,12"
+			Foreground="#5c5c5c"
+			TextWrapping="Wrap"
+			Text="分组只存在本机库里，不是磁盘上的文件夹。默认图标是文件夹，颜色继承父级。"/>
+
+		<TextBlock Margin="0,0,0,4" FontWeight="SemiBold" Text="名称"/>
+		<TextBox
+			Margin="0,0,0,12"
+			Text="{Binding GroupName, UpdateSourceTrigger=PropertyChanged}"
+			VerticalContentAlignment="Center"/>
+
+		<TextBlock Margin="0,0,0,4" FontWeight="SemiBold" Text="放在"/>
+		<ComboBox
+			DisplayMemberPath="Label"
+			ItemsSource="{Binding Parents, Mode=OneWay}"
+			SelectedItem="{Binding SelectedParent, UpdateSourceTrigger=PropertyChanged}"/>
+	</StackPanel>
+</UserControl>

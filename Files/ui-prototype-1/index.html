@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>SimpleCollectionHub — 原型 1</title>
+	<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+	<div class="app">
+		<header class="titlebar">
+			<div class="titlebar-left">
+				<div class="app-mark" aria-hidden="true"></div>
+				<span class="app-name">SimpleCollectionHub</span>
+				<span class="proto-badge">原型 1</span>
+			</div>
+			<div class="titlebar-actions">
+				<button class="win-btn" type="button" title="最小化" data-action="noop">—</button>
+				<button class="win-btn" type="button" title="最大化" data-action="noop">□</button>
+				<button class="win-btn win-btn-close" type="button" title="关闭" data-action="noop">✕</button>
+			</div>
+		</header>
+
+		<div class="shell">
+			<aside class="sidebar">
+				<div class="search-wrap">
+					<svg class="search-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M10.7 11.8a6 6 0 1 1 1.1-1.1l3.3 3.2-.9.9-3.5-3zM11.5 7a4.5 4.5 0 1 0-9 0 4.5 4.5 0 0 0 9 0z"/></svg>
+					<input id="searchInput" type="search" placeholder="搜索名称、路径、备注…" autocomplete="off">
+				</div>
+
+				<nav id="groupNav" class="group-nav"></nav>
+
+				<div class="sidebar-footer">
+					<button class="sidebar-link" type="button" data-action="open-help">
+						<span class="nav-ico" aria-hidden="true">?</span>
+						原型说明
+					</button>
+				</div>
+			</aside>
+
+			<main class="main">
+				<div class="toolbar">
+					<div class="toolbar-left">
+						<h1 id="pageTitle">全部收藏</h1>
+						<span id="pageCount" class="muted"></span>
+					</div>
+					<div class="toolbar-right">
+						<div class="segment" role="tablist" aria-label="视图">
+							<button class="segment-btn is-active" type="button" data-action="view-mode" data-mode="cards">卡片</button>
+							<button class="segment-btn" type="button" data-action="view-mode" data-mode="list">列表</button>
+						</div>
+						<button class="btn" type="button" data-action="open-add-group">新建分组</button>
+						<button class="btn btn-primary" type="button" data-action="open-add-item">添加条目</button>
+					</div>
+				</div>
+				<div id="library" class="library"></div>
+			</main>
+
+			<aside id="detail" class="detail" hidden></aside>
+		</div>
+
+		<div id="overlay" class="overlay" hidden></div>
+		<div id="dialog" class="dialog" hidden role="dialog" aria-modal="true"></div>
+		<div id="lightbox" class="lightbox" hidden>
+			<button class="lightbox-close" type="button" data-action="close-lightbox" aria-label="关闭">✕</button>
+			<div id="lightboxStage" class="lightbox-stage"></div>
+			<div id="lightboxCap" class="lightbox-cap"></div>
+		</div>
+		<div id="contextMenu" class="ctx" hidden></div>
+		<div id="toast" class="toast" hidden></div>
+		<input id="folderPicker" type="file" webkitdirectory directory hidden>
+		<input id="imagePicker" type="file" accept="image/*" multiple hidden>
+	</div>
+
+	<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,123 @@
+﻿<Window
+	x:Class="SimpleCollectionHub.Views.MainWindow"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:base="RW.Base.WPF"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:dialogs="clr-namespace:SimpleCollectionHub.Views.Dialogs"
+	xmlns:dxmvvm="http://schemas.devexpress.com/winfx/2008/xaml/mvvm"
+	xmlns:f="SimpleCollectionHub.Framework"
+	xmlns:local="clr-namespace:SimpleCollectionHub.Views"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:res="SimpleCollectionHub.Resources"
+	xmlns:s="clr-namespace:SimpleCollectionHub.Strings;assembly=SimpleCollectionHub.Strings"
+	xmlns:vms="clr-namespace:SimpleCollectionHub.ViewModels"
+	xmlns:wpf="RW.Common.WPF"
+	Title="SimpleCollectionHub"
+	Width="1280"
+	Height="860"
+	MinWidth="960"
+	MinHeight="640"
+	WindowStartupLocation="CenterScreen"
+	d:DataContext="{d:DesignInstance Type=vms:MainWindowViewModel}"
+	d:DesignHeight="860"
+	d:DesignWidth="1280"
+	DataContext="{base:DISource Type=vms:MainWindowViewModel}"
+	mc:Ignorable="d">
+
+	<dxmvvm:Interaction.Behaviors>
+		<f:DialogService x:Name="AboutDialog" ContentType="{x:Type dialogs:AboutDialog}"/>
+		<base:LoadedService Command="{Binding LoadedCommand}" OnlyOnce="False"/>
+		<base:LoadedService Command="{Binding LoadedOnceCommand}" OnlyOnce="True"/>
+		<base:TypedUIObjectService Name="WindowService"/>
+		<base:DispatcherServiceEx/>
+		<f:MessageBoxServiceEx/>
+	</dxmvvm:Interaction.Behaviors>
+
+	<Grid Background="#F3F3F3">
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="276"/>
+			<ColumnDefinition Width="*"/>
+			<ColumnDefinition Width="Auto"/>
+		</Grid.ColumnDefinitions>
+
+		<local:CollectionSidebarView Grid.Column="0"/>
+		<local:CollectionLibraryView Grid.Column="1"/>
+		<local:CollectionDetailView
+			Grid.Column="2"
+			Width="408"
+			Visibility="{Binding Workspace.HasDetail, Converter={StaticResource Boolean2VisibilityConverter}}"/>
+
+		<Border
+			Grid.ColumnSpan="3"
+			Background="#88FFFFFF"
+			Visibility="{Binding Workspace.LoadingStatus.IsLoadingActive, Converter={StaticResource Boolean2VisibilityConverter}}">
+			<StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+				<TextBlock
+					HorizontalAlignment="Center"
+					FontSize="14"
+					Text="{Binding Workspace.LoadingStatus.Message, Mode=OneWay}"
+					Visibility="{Binding Workspace.LoadingStatus.IsLoading, Converter={StaticResource Boolean2VisibilityConverter}}"/>
+				<TextBlock
+					MaxWidth="420"
+					HorizontalAlignment="Center"
+					Foreground="#DB3340"
+					Text="{Binding Workspace.LoadingStatus.ErrorMessage, Mode=OneWay}"
+					TextAlignment="Center"
+					TextWrapping="Wrap"
+					Visibility="{Binding Workspace.LoadingStatus.HasError, Converter={StaticResource Boolean2VisibilityConverter}}"/>
+				<Button
+					Margin="0,12,0,0"
+					Command="{Binding RefreshCommand}"
+					Content="重试"
+					Style="{StaticResource HubButton}"
+					Visibility="{Binding Workspace.LoadingStatus.HasError, Converter={StaticResource Boolean2VisibilityConverter}}"/>
+			</StackPanel>
+		</Border>
+
+		<Border
+			Grid.ColumnSpan="3"
+			Padding="24"
+			Background="#CC111111"
+			Visibility="{Binding Workspace.IsLightboxVisible, Converter={StaticResource Boolean2VisibilityConverter}}">
+			<dxmvvm:Interaction.Behaviors>
+				<dxmvvm:EventToCommand Command="{Binding CloseLightboxCommand}" EventName="MouseLeftButtonDown"/>
+			</dxmvvm:Interaction.Behaviors>
+			<Grid>
+				<Grid.RowDefinitions>
+					<RowDefinition Height="Auto"/>
+					<RowDefinition Height="*"/>
+					<RowDefinition Height="Auto"/>
+				</Grid.RowDefinitions>
+				<Button
+					HorizontalAlignment="Right"
+					Command="{Binding CloseLightboxCommand}"
+					Content="✕"
+					Foreground="White"
+					Style="{StaticResource HubButtonGhost}"/>
+				<Image
+					Grid.Row="1"
+					Margin="0,12"
+					Stretch="Uniform"
+					Source="{Binding Workspace.LightboxImage, Mode=OneWay}"/>
+				<TextBlock
+					Grid.Row="2"
+					HorizontalAlignment="Center"
+					Foreground="#DDDDDD"
+					Text="{Binding Workspace.LightboxCaption, Mode=OneWay}"/>
+			</Grid>
+		</Border>
+
+		<Border
+			Grid.ColumnSpan="3"
+			Margin="0,0,0,28"
+			Padding="14,10"
+			HorizontalAlignment="Center"
+			VerticalAlignment="Bottom"
+			Background="#1B1B1B"
+			CornerRadius="8"
+			Visibility="{Binding Workspace.IsToastVisible, Converter={StaticResource Boolean2VisibilityConverter}}">
+			<TextBlock Foreground="White" Text="{Binding Workspace.ToastMessage, Mode=OneWay}"/>
+		</Border>
+	</Grid>
+</Window>

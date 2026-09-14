@@ -1,0 +1,206 @@
+---
+description: WPF 项目整体架构约定，始终生效
+alwaysApply: true
+---
+
+# WPF 项目架构
+
+## 项目信息
+
+- 技术栈：.NET 10.0-windows、WPF、DevExpress MVVM（免费版）
+- 应用框架：**RW.Base.WPF**（`ApplicationBase` + `IoCInitializer` + `DllLoader`）
+- 依赖注入：Autofac（经由 `RW.Base.WPF` 传递引入）
+- 事件聚合：`RW.Base.WPF.Events.IEventAggregator`
+- 数据库：FreeSql + SQLite
+- 对象映射：Mapster（经由 `RW.Base.WPF` 传递引入）
+- JSON：Newtonsoft.Json
+- 日志/调试输出：`RW.Base.WPF.Extensions.DebugLog`
+- 图标：项目自带 Segoe Fluent Icons 字体 + T4 生成的位图资源
+
+**本产品**：个人藏品库。主界面三栏（左侧筛选+分组树 / 中间卡片或列表 / 右侧详情）。
+不使用 `Source/Modules` 动态模块，不引入图表库。元数据只存在 LocalAppData，禁止写入用户绑定的原路径。
+
+> 以上就是模板的全部技术选型。需要引入表格、图表、日志框架等新依赖时，
+> 先与用户确认，不要自行添加。
+
+## 解决方案结构
+
+| 目录 | 说明 |
+|---|---|
+| `Source/SimpleCollectionHub/` | 主应用程序项目（WinExe） |
+| `Source/SimpleCollectionHub.Framework/` | 框架层（共享基础设施，承载全部 NuGet 依赖） |
+| `Source/SimpleCollectionHub.Resources/` | 资源项目（图标、图片、颜色，含 T4 资源管线） |
+| `Source/SimpleCollectionHub.Strings/` | 本地化字符串资源（`netstandard2.0`） |
+| `Source/Modules/<模块名>/` | 功能模块（可选） |
+| `Generator/GeneratorConsole/` | 模板实例化工具（复制模板并替换项目名/公司名） |
+| `Nugets/` | RW.* 内部包的本地 NuGet 源，由根目录 `nuget.config` 注册 |
+
+引用关系：`SimpleCollectionHub` → `Framework` → `Resources` → `Strings`。
+共享类型放 `Framework`，上表就是完整的项目列表。
+
+## 版本与目标框架
+
+`Source/Directory.Build.props` 统一管理：
+
+```xml
+<DefaultTargetFramework>net10.0</DefaultTargetFramework>
+<TargetFramework>$(DefaultTargetFramework)-windows</TargetFramework>
+<!-- RW.* 内部库统一版本号 -->
+<RW_Common_Version>1.0.54</RW_Common_Version>
+```
+
+升级 RW.* 版本时只改 `RW_Common_Version`，并把新的 `.nupkg` 放进根目录 `Nugets\`。
+
+## 模块化架构
+
+每个功能模块是独立的 WPF 库项目：
+
+```
+Source/Modules/SimpleCollectionHub.<模块名>/
+├── SimpleCollectionHub.<模块名>.csproj
+├── AppModule.cs          # 模块元数据（实现 IAppModule）
+├── Views/                # 视图层
+│   ├── <模块名>MainView.xaml
+│   └── Dialogs/          # 对话框
+├── ViewModels/           # 视图模型层
+└── Services/             # 业务服务（可选）
+```
+
+模块 DLL 通过 `RW.Base.WPF.Extensions.DllLoader` 在启动时被扫描加载，
+`IoCInitializer` 再从这些程序集中发现并注册 `ISingletonDependency` / `ITransientDependency` 实现。
+
+## 应用启动流程
+
+`App` 继承 `RW.Base.WPF.ApplicationBase`：
+
+```xml
+<base:ApplicationBase
+    x:Class="SimpleCollectionHub.App"
+    xmlns:base="RW.Base.WPF"
+    ...>
+```
+
+启动时 `ApplicationBase` 依次驱动：
+
+1. `GetAppManager()` — 提供应用元数据（名称、版本、作者、构建模式）
+2. `GetFolderConfig()` — 提供各类目录路径
+3. `GetDllLoader()` — 决定加载哪些程序集（模块发现）
+4. `GetIoCInitializer()` — 注册容器依赖、Mapster 配置、早期加载的设置服务
+5. `IAppInitialize` / `IAppInitializeAsync` 实现按 `IPriority` 顺序执行，进度报给启动画面的 `IStatusReport`
+6. 主窗口显示；退出时执行 `IAppClosedHandler`
+
+`Framework/Startup.cs` 实现 `IStartup`，只做框架层自己那部分注册，其余交给 `IoCInitializer`。
+
+## 核心技术组件
+
+### MVVM
+
+- **DevExpress MVVM（免费版 DevExpressMvvm）**：`ViewModelBase`、`BindableBase`、`DelegateCommand`、
+  `AsyncCommand`、`dxmvvm:Interaction.Behaviors` 与各类 ViewModel 服务
+- **RW.Base.WPF**：`DISource` 标记扩展（XAML 里解析 ViewModel）、`ViewModelServices`、`StatusReport`
+- 模块间通信用 `RW.Base.WPF.Events.IEventAggregator`（`PubSubEvent`）
+
+### 依赖注入
+
+- **Autofac**：容器实现
+- **`RW.Base.WPF.DependencyInjections`**：`ISingletonDependency`、`ITransientDependency`、`INoDependency`
+- **`RW.Base.WPF.Interfaces`**：`IStartup`、`IAppInitialize`、`IAppInitializeAsync`、`IAppClosedHandler`、`IPriority`
+- **`RW.Base.WPF.Extensions.IoC`**：服务定位器（仅在无法构造函数注入的场合使用）
+
+### 数据访问层
+
+- **FreeSql** + **SQLite**
+  - `FreeSql`、`FreeSql.Provider.Sqlite`、`FreeSql.Extensions.JsonMap`、`FreeSql.Repository`
+
+```csharp
+IFreeSql freeSql = new FreeSqlBuilder()
+    .UseConnectionString(DataType.Sqlite, "Data Source=data.db")
+    .UseAutoSyncStructure(true)
+    .Build();
+
+freeSql.CodeFirstConfig
+    .EnableTableSplit(false)
+    .EnableAddDefaultValue(true)
+    .EnableCascadeSave(true)
+    .SyncStructure();
+```
+
+Repository 模式见 `Framework/Database/EntityRepository.cs` 与 `IEntity.cs`：
+
+```csharp
+public interface IEntityRepository<T> where T : class, IEntity
+{
+    /// <summary>按主键获取实体。</summary>
+    Task<T> GetByIdAsync(Guid id);
+    /// <summary>获取全部实体。</summary>
+    Task<List<T>> GetAllAsync();
+    /// <summary>插入实体并返回插入结果。</summary>
+    Task<T> InsertAsync(T entity);
+    /// <summary>更新实体，返回是否成功。</summary>
+    Task<bool> UpdateAsync(T entity);
+    /// <summary>按主键删除，返回是否成功。</summary>
+    Task<bool> DeleteAsync(Guid id);
+}
+```
+
+### 设置持久化
+
+继承 `RW.Base.WPF.Services.JsonSettingsServiceBase<T>`，路径来自 `AppFolderConfig`：
+
+```csharp
+public class AppSettingsService(AppFolderConfig folderConfig)
+    : JsonSettingsServiceBase<AppSettingsModel>, IAppSettingsService
+{
+    public override string FilePath => folderConfig.AppSettingsFilePath;
+    public override AppSettingsModel GetDefaultModel() => new();
+}
+```
+
+### 资源与 T4
+
+`SimpleCollectionHub.Resources` 承载三类资源：
+
+- **字体图标**：`Fonts/Segoe Fluent Icons.ttf` 以 `Resource` 编译进程序集，
+  `ResourcesGeneric.xaml` 声明为 `IconPack` 字体，`FrameworkTheme.xaml` 挂成 `wpf:FontIcon` 的默认样式
+- **位图**：T4 模板把 `Icons/` 与 `Images/` 下的图片生成为
+  pack URI 常量（`.cs`）和 `BitmapImage` 资源字典（`.xaml`）
+- **颜色**：`CustomColors.xaml`
+
+三者由 `ResourcesGeneric.xaml` → `FrameworkTheme.xaml` → `App.xaml` 逐级合并。
+详见 `icon-usage` 规则。
+
+### 工具库
+
+| 库 | 典型内容 |
+|---|---|
+| `RW.Common` | 字符串/集合/文件扩展方法、数据结构、通用模型 |
+| `RW.Common.WPF` | WPF 控件（`TitleContent`、`NumberBox` 等）、转换器、扩展方法、定时器 |
+| `RW.Base.WPF` | 应用框架：`ApplicationBase`、DI、生命周期、事件聚合、ViewModel 服务 |
+| `Mapster` | 对象映射（`Adapt<T>()`） |
+| `Newtonsoft.Json` | JSON 序列化 |
+
+各库的目录结构与类型清单见 `rw-libraries-reference` 规则。
+
+## 表格控件
+
+普通配置表格、数据库记录一律用常规 `DataGrid`
+（或 `RW.Common.WPF.Controls.DataGridExtended`）。
+
+## 修改后自动编译校验
+
+修改 C# 代码后，如果改动涉及类型、接口、方法签名等可能引发编译错误的内容，**主动运行编译命令检查是否有错误**，不要等用户发现。
+
+```powershell
+dotnet build -v quiet
+```
+
+- 编译通过后再结束任务
+- 如有编译错误，分析原因并修复，再次编译确认
+
+### 文件锁定处理
+
+如果 `dotnet build` 遇到类似 `MSB3021`（无法复制文件，文件正在被另一进程使用）或 `MSB3027`（文件被锁定）等错误：
+
+1. **立即结束**当前编译
+2. 尝试使用仅检查 C# 编译错误的方式再试一次，或关闭可能占用文件的进程后再试
+3. 如果仍然失败，**放弃编译**，告知用户文件锁定状态，不要反复重试浪费时间和资源

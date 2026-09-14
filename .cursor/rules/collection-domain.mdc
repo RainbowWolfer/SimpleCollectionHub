@@ -1,0 +1,34 @@
+---
+description: 藏品库产品边界。写分组、条目、媒体、路径相关代码时必须遵守。
+alwaysApply: true
+---
+
+# 藏品库产品边界
+
+SimpleCollectionHub 只给**已经存在的**文件夹贴本机元数据。磁盘上的游戏 / 音乐 / 视频目录继续留在原地。
+
+## 必须
+
+- 元数据只写软件 LocalAppData：SQLite（`AppFolderConfig.AppDatabaseFilePath`）和 `AppFolderConfig.MediaFolder`
+- 分组可嵌套；「全部收藏」是虚拟根，图标/颜色在 `AppSettingsModel`，不是数据库行
+- 标签只用于筛选，多选为 **或**；标签不进入分组树，也不改变树的结构和计数
+- 搜索 / 标签 / 完整度 / 组内排序只影响中间列表
+- 树计数 = 自身 + 全部后代条目，始终是全库、未筛选
+- 界面图标用项目自带 Segoe Fluent Icons（`wpf:FontIcon`），不要引入新图标包
+- 导入的图片 **复制** 进 `MediaFolder`，库里只记相对路径
+- 「打开原目录」只用 `FileActionHelper.ShowInExplorerWithMessage`，只开资源管理器
+- 「从库中移除」只删库记录和已导入媒体，不碰 `Path` 指向的磁盘
+
+## 禁止
+
+- 在用户绑定的原路径新建、修改、删除任何文件（包括 sidecar、cover、ini）
+- 用默认程序打开 / 启动原文件或游戏（不要 `OpenPathInSystemDefault`）
+- 扫描原目录自动当封面
+- 路径丢失后的「重新指定」流程
+- 从资源管理器拖放绑定、卡片拖到分组
+- Steam / 网络同步 / 换机同步
+- `Source/Modules` 动态模块 DLL、图表库、第三方皮肤、额外 NuGet
+
+## 界面对照
+
+UI 以 `Files/ui-prototype-4/` 为准。筛选（搜索 + 标签）必须放在树上方同一块，不要拆开。

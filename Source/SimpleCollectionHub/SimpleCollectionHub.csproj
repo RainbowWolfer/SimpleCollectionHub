@@ -1,0 +1,44 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<UseWPF>true</UseWPF>
+
+		<ApplicationManifest>Properties\app.manifest</ApplicationManifest>
+
+		<ApplicationIcon>..\SimpleCollectionHub.Resources\Icons\AppIcon.ico</ApplicationIcon>
+
+		<SatelliteResourceLanguages>en;zh-Hans</SatelliteResourceLanguages>
+		<AllowVeryLargeObjects>true</AllowVeryLargeObjects>
+
+		<OutputPath>$(SolutionDir)bin\$(Configuration)\</OutputPath>
+
+	</PropertyGroup>
+
+
+
+	<ItemGroup>
+		<ProjectReference Include="..\SimpleCollectionHub.Framework\SimpleCollectionHub.Framework.csproj" />
+	</ItemGroup>
+
+
+
+	<ItemGroup>
+		<None Update="Properties\AppConfig.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
+
+	<Target Name="RemoveNonWindowsRuntimes" AfterTargets="AfterBuild">
+		<Message Text="OutDir = $(OutDir)" Importance="high" />
+
+		<ItemGroup>
+			<RuntimesToDelete Include="linux-arm;linux-arm64;linux-loongarch64;linux-musl-arm;linux-musl-arm64;linux-musl-loongarch64;linux-musl-riscv64;linux-musl-x64;linux-riscv64;linux-x64;linux-x86;osx;osx-x64;unix;osx-arm64" />
+		</ItemGroup>
+
+		<RemoveDir Directories="$(OutDir)runtimes\%(RuntimesToDelete.Identity)" ContinueOnError="true" />
+
+		<Message Text="已清理非 Windows 的 runtime 文件夹" Importance="high" />
+	</Target>
+
+</Project>

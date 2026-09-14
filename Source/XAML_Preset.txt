@@ -1,0 +1,28 @@
+
+-------------- Dialog --------------
+xmlns:base="RW.Base.WPF"
+xmlns:f="SimpleCollectionHub.Framework"
+xmlns:res="SimpleCollectionHub.Resources"
+xmlns:wpf="RW.Common.WPF"
+xmlns:s="clr-namespace:SimpleCollectionHub.Strings;assembly=SimpleCollectionHub.Strings"
+xmlns:dxmvvm="http://schemas.devexpress.com/winfx/2008/xaml/mvvm"
+d:Background="White"
+d:DataContext="{d:DesignInstance Type=local:DialogViewModel}"
+Style="{StaticResource DialogStyle.Base}"
+DataContext="{base:DISource Type=local:DialogViewModel}"
+-------------- Dialog --------------
+
+
+-------------- View --------------
+xmlns:base="RW.Base.WPF"
+xmlns:f="SimpleCollectionHub.Framework"
+xmlns:res="SimpleCollectionHub.Resources"
+xmlns:wpf="RW.Common.WPF"
+xmlns:s="clr-namespace:SimpleCollectionHub.Strings;assembly=SimpleCollectionHub.Strings"
+xmlns:dxmvvm="http://schemas.devexpress.com/winfx/2008/xaml/mvvm"
+d:DataContext="{d:DesignInstance Type=local:ViewModel}"
+DataContext="{base:DISource Type=local:ViewModel}"
+Style="{DynamicResource UserControlStyle}"
+d:DesignHeight="450"
+d:DesignWidth="800"
+-------------- View --------------

@@ -1,0 +1,413 @@
+---
+description: WPF MVVM 核心行为约束（项目结构、命名、ViewModel、属性、命令、服务、DI、对话框等），始终生效
+alwaysApply: true
+---
+
+# WPF 客户端核心规范
+
+## 项目结构
+
+### 主项目
+
+```
+SimpleCollectionHub/
+├── Views/         # 视图层
+│   ├── MainWindow.xaml
+│   ├── AppSplashScreen.xaml
+│   └── Dialogs/
+├── ViewModels/    # 视图模型层
+│   └── MainWindowViewModel.cs
+├── App.xaml           # 继承 RW.Base.WPF 的 ApplicationBase
+└── App.xaml.cs
+```
+
+### Framework 项目
+
+```
+SimpleCollectionHub.Framework/
+├── Configs/           Controls/         Converters/       Services/
+├── ViewModelServices/ ViewModels/       Helpers/          MarkupExtensions/
+├── Mappers/           Utilities/        Database/         Resources/
+└── Startup.cs
+```
+
+### 模块目录
+
+```
+SimpleCollectionHub.<模块名>/
+├── AppModule.cs
+├── Views/        ├── <模块名>MainView.xaml   └── Dialogs/
+└── ViewModels/
+```
+
+## View / ViewModel 命名约定
+
+以功能名称 `Xxx`（不含 View 后缀）为前缀：
+
+| 文件类型 | 命名格式 |
+|---|---|
+| View 文件 | `XxxView.xaml` |
+| ViewModel 文件 | `XxxViewModel.cs` |
+| 对话框 View | `XxxDialog.xaml` |
+| 对话框 ViewModel | `XxxDialogViewModel.cs` |
+
+**严禁**将 View 文件名中的 `View` 后缀保留到 ViewModel 文件名中：
+
+| ❌ 错误 | ✅ 正确 |
+|---|---|
+| `AlarmLogViewViewModel.cs` | `AlarmLogViewModel.cs` |
+| `MainConsoleMainViewViewModel.cs` | `MainConsoleMainViewModel.cs` |
+
+**推导规则**：从 `{Name}View.xaml` 推导 ViewModel 时，取 `{Name}` 再加 `ViewModel.cs`。
+
+## ViewModel 继承
+
+| 场景 | 基类 |
+|---|---|
+| 普通页面 | `ViewModelBaseEx` |
+| 对话框 | `DialogViewModel<TParameter>` / `DialogViewModelOkCancel<TParameter>` |
+
+`UserControlStyle` 与 `ViewModelBaseEx` 强相关，使用其中一个必须搭配另一个。
+
+```csharp
+// 普通页面
+internal class XxxViewModel : ViewModelBaseEx
+{
+    protected override void LoadedOnce()
+    {
+        // 首次加载初始化
+    }
+}
+
+// 对话框（带确定/取消按钮）
+internal class XxxDialogViewModel : DialogViewModelOkCancel<XxxDialogParameter>
+{
+    protected override void OnInitialized()
+    {
+        // Parameter 和 ParentViewModel 已就绪
+    }
+
+    protected override bool Validate(out string message)
+    {
+        message = string.Empty;
+        return true;
+    }
+
+    protected override bool OnConfirmed()
+    {
+        // 把结果写回 Parameter 后返回 true 关闭窗口
+        return true;
+    }
+}
+```
+
+## TypedUIObjectService 行为规则
+
+**TypedUIObjectService（及任何继承 ServiceBase 的类）是 ViewModel 服务，不是容器服务。**
+
+核心规则（详见 `reference-typed-ui-object-service` skill）：
+
+- **禁止构造函数注入**（会报错，未在 AutoFac 注册）
+- **必须在 XAML 中通过 `<dxmvvm:Interaction.Behaviors>` 注册**，使用 `Name` 或 `x:Name`
+- **必须使用 `.As<T>()` 转换类型**（这是与其它 ViewModel 服务的核心区别）
+- 单个实例可省略 Name：`GetService<ITypedUIObjectService>().As<Grid>()`
+- 多个实例需指定 Name：`GetService<ITypedUIObjectService>(nameof(Grid1Service)).As<Grid>()`
+
+`TypedUIObjectService` 来自 `RW.Base.WPF.ViewModelServices`，XAML 前缀是 `base:`
+（`xmlns:base="RW.Base.WPF"`）：
+
+```xml
+<!-- XAML 注册 -->
+<dxmvvm:Interaction.Behaviors>
+    <base:TypedUIObjectService Name="Grid1Service"/>
+</dxmvvm:Interaction.Behaviors>
+
+<!-- 命名的元素 -->
+<DataGrid x:Name="DataGrid1"/>
+```
+
+前缀速查：`base:` = RW.Base.WPF 提供的服务（`TypedUIObjectService`、`DispatcherServiceEx`、
+`LoadedService`、`CurrentWindowServiceEx`）；`f:` = 本项目 Framework 自己的服务
+（`DialogService`、`MessageBoxServiceEx`、`CurrentDialogService`）。
+
+```csharp
+// ❌ 错误：不要通过构造函数注入 TypedUIObjectService
+internal class XxxViewModel(TypedUIObjectService typedUIObjectService) : ViewModelBaseEx
+{
+    private void Export()
+    {
+        var dataGrid = typedUIObjectService.GetControl<DataGrid>("DataGrid1");
+    }
+}
+
+// ✅ 正确
+internal class XxxViewModel : ViewModelBaseEx
+{
+    public IUIObjectService<Grid> Grid1Service => GetService<ITypedUIObjectService>(nameof(Grid1Service)).As<Grid>();
+
+    private void Export()
+    {
+        Grid grid = Grid1Service.Object;
+        grid.Visibility = Visibility.Collapsed;
+    }
+}
+```
+
+## ViewModel 服务 vs 容器服务
+
+| 类型 | 注册方式 | 获取方式 | 是否需要 .As<T>() |
+|---|---|---|---|
+| 容器服务（`ISingletonDependency`） | AutoFac 自动，构造函数注入 | 构造函数参数 | ❌ |
+| ViewModel 服务（`ServiceBase`） | XAML `<dxmvvm:Interaction.Behaviors>` | `GetService<IService>(nameof(Name))` | ❌ |
+| **TypedUIObjectService** | XAML `<dxmvvm:Interaction.Behaviors>` | `GetService<ITypedUIObjectService>(nameof(Name))` | ✅ **必需** |
+
+## MVVM 属性定义
+
+**禁止使用 `ref` 传参或 `field` 关键字定义绑定属性**，必须用 DevExpress 的 `GetProperty`/`SetProperty`：
+
+```csharp
+// ✅ 正确
+public string TitleName
+{
+    get => GetProperty(() => TitleName);
+    set => SetProperty(() => TitleName, value);
+}
+
+// ❌ 错误
+public string TitleName
+{
+    get => GetValue<string>();
+    set => SetValue(ref _titleName, value);
+}
+
+// ❌ 错误：field 关键字仅用于 Command 懒加载，不用于需要变更通知的 MVVM 属性
+public string TitleName
+{
+    get => field;
+    set => field = value;
+}
+```
+
+## Command 写法
+
+使用 `field ??= new ...` 懒加载，handler 与定义共置，禁止分离到文件底部：
+
+```csharp
+internal class XxxViewModel : ViewModelBaseEx
+{
+    public IDelegateCommand DoSomethingCommand => field ??= new DelegateCommand(DoSomething, CanDoSomething);
+    private void DoSomething() { }
+    private bool CanDoSomething() => SelectedItem is not null;
+
+    // 异步命令
+    public IDelegateCommand SaveCommand => field ??= new AsyncCommand(Save);
+    private async Task Save() { await SaveAsync(); }
+}
+```
+
+## DependencyProperty 模板
+
+```csharp
+public static readonly DependencyProperty XxxProperty =
+    DependencyProperty.Register(nameof(Xxx), typeof(string), typeof(MyControl), new PropertyMetadata(default(string)));
+
+public string Xxx
+{
+    get => (string)GetValue(XxxProperty);
+    set => SetValue(XxxProperty, value);
+}
+```
+
+## AppModule 注册
+
+```csharp
+namespace SimpleCollectionHub.<模块名>;
+
+public class AppModule : IAppModule
+{
+    public string Key { get; } = ConstKeys.SK_XXX;
+    public string DisplayName { get; } = "XXX";
+    public string FullName { get; } = "模块完整中文名";
+    public string EnglishFullName { get; } = "Module Name";
+    public string Description { get; } = "描述";
+    public ImageSource Icon { get; } = IconResources.Icon_XXX_PNG.ToImageSource();
+    public ContentControl Content { get; } = new <模块名>MainView();
+    public bool IsEnabled { get; } = true;
+}
+```
+
+## AutoFac 依赖注入
+
+### 生命周期接口
+
+| 接口 | 用途 |
+|---|---|
+| `ISingletonDependency` | 单例服务 |
+| `IAppInitializeAsync` | 异步启动初始化 |
+| `IAppInitialize` | 同步启动初始化 |
+| `IAppClosedHandler` | 应用关闭时清理 |
+
+生命周期接口来自 `RW.Base.WPF.DependencyInjections` 与 `RW.Base.WPF.Interfaces`。
+
+```csharp
+// 单例服务
+internal class XxxService(IAppSettingsService settingsService) : IXxxService, ISingletonDependency
+{
+}
+
+// 带异步初始化的单例
+internal class XxxService(IStatusReport statusReport) : IXxxService, IAppInitializeAsync
+{
+    string IAppInitializeAsync.Description { get; } = "初始化 Xxx";
+    int IPriority.Priority { get; } = IntPriority.Normal;
+
+    async Task IAppInitializeAsync.AppInitializeAsync(IStatusReport statusReport)
+    {
+        // 初始化逻辑
+    }
+}
+```
+
+### 注入方式
+
+优先使用 Primary Constructor：
+
+```csharp
+internal class XxxViewModel(IConfigService configService) : ViewModelBaseEx
+{
+    // 直接使用 configService
+}
+```
+
+## IDialogService
+
+```csharp
+// 使用 DevExpress MVVM 消息服务
+internal class XxxViewModel(IMessageBoxService messageBoxService) : ViewModelBaseEx
+{
+    private void ShowWarning()
+    {
+        messageBoxService.Show("操作成功", "提示", MessageButton.OK, MessageIcon.Information);
+    }
+}
+```
+
+复杂对话框使用 `add-dialog` skill 创建自定义 DialogService。
+
+## LoadingStatus
+
+异步加载统一用 `LoadingStatus`，禁止自建 `IsBusy`/`HasError`：
+
+```csharp
+internal class XxxViewModel : ViewModelBaseEx
+{
+    public LoadingStatus LoadingStatus { get; } = new();
+
+    public IDelegateCommand LoadCommand => field ??= new AsyncCommand(Load);
+    private async Task Load()
+    {
+        try
+        {
+            LoadingStatus.Initialize("读取文件...");
+            await DoStuff();
+            LoadingStatus.Done();
+        }
+        catch (OperationCanceledException)
+        {
+            LoadingStatus.Reset();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex);
+            LoadingStatus.Error(ex.Message);
+        }
+    }
+}
+```
+
+XAML 中用 `<f:LoadingCover LoadingStatus="{Binding LoadingStatus}" RefreshCommand="{Binding LoadCommand}"/>` 绑定。API 详情见 `reference-loading-status` skill。
+
+## 表格控件选择
+
+| 场景 | 控件 |
+|---|---|
+| 普通配置表格、数据库记录 | 常规 `DataGrid` |
+| 需要额外交互增强（列自适应、选中同步等） | `RW.Common.WPF.Controls.DataGridExtended` |
+
+确有百万行级别渲染需求时，先用 `RW.Common.WPF.Virtualization` 下的虚拟化面板，
+或与用户确认后再引入新依赖。
+
+## 文件对话框服务
+
+**禁止** `Microsoft.Win32.OpenFileDialog` / `SaveFileDialog`，用 DevExpress 服务：
+
+```xml
+<!-- XAML 注册 -->
+<dxmvvm:Interaction.Behaviors>
+    <dxmvvm:OpenFileDialogService Name="OpenFileDialog"/>
+    <dxmvvm:SaveFileDialogService Name="SaveFileDialog"/>
+</dxmvvm:Interaction.Behaviors>
+```
+
+```csharp
+// ViewModel 使用
+public IOpenFileDialogService OpenFileDialog => GetService<IOpenFileDialogService>(nameof(OpenFileDialog));
+public ISaveFileDialogService SaveFileDialog => GetService<ISaveFileDialogService>(nameof(SaveFileDialog));
+
+private void OpenFile()
+{
+    if (OpenFileDialog.ShowDialog(OnFileOpen))
+    {
+        // 文件已选择
+    }
+}
+
+private void OnFileOpen(CancelEventArgs args, IFileInfo fileInfo)
+{
+    string filePath = fileInfo.GetFullName();
+}
+```
+
+## 文件夹选择
+
+**必须使用** `AppFileHelper.PickFolder`，禁止 WinForms `FolderBrowserDialog`：
+
+```csharp
+using SimpleCollectionHub.Framework.Helpers;
+
+if (AppFileHelper.PickFolder("选择文件夹", Environment.GetFolderPath(Environment.SpecialFolder.Desktop), out string path))
+{
+    FolderPath = path;
+}
+
+// 简化重载
+if (AppFileHelper.PickFolder(out string path)) { FolderPath = path; }
+```
+
+## 数据映射
+
+使用 Mapster（经由 `RW.Base.WPF` 传递引入），映射配置写在 `Framework/Mappers/` 下：
+
+```csharp
+using Mapster;
+
+XxxDto dto = model.Adapt<XxxDto>();
+XxxModel model = dto.Adapt<XxxModel>();
+```
+
+## 资源引用
+
+```csharp
+// 位图：T4 生成的 pack URI 常量，详见 icon-usage 规则
+string iconUri = IconResources.AppIcon_PNG;
+ImageSource icon = IconResources.AppIcon_PNG.ToImageSource();
+
+// 本地化字符串
+string text = AppStrings.Xxx_Title;
+```
+
+XAML 侧：
+
+- 界面图标 `<wpf:FontIcon Text="&#xE721;"/>`（项目自带 Segoe Fluent Icons）
+- 应用 / 模块图标 `<Image Source="{StaticResource AppIcon_PNG}"/>`
+- 颜色用 `CustomColors.xaml` 中的资源键

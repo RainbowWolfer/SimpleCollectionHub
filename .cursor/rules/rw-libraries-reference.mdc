@@ -1,0 +1,153 @@
+---
+description: RW 系列内部库本地源码路径映射与结构速查，始终生效
+alwaysApply: true
+---
+
+# RW 系列内部库速查
+
+本规则提供 RW 系列内部 NuGet 包的**本地源码路径**与**代码结构概览**。
+详细的 API 用法（扩展方法、DI 接口等）见 `csharp-syntax.mdc` 的「RW.Common.Helpers 扩展方法」
+与「优先使用内部库」章节。
+
+> **核心原则**：当需要查找 RW 系列库中的类型、方法时，必须先到对应源码目录搜索，
+> 找到真实存在的 API 后再写代码，不要凭空编造 API 签名。
+
+---
+
+## 基础路径
+
+```
+RW_ROOT = C:\Users\RainbowWolfer\source\repos\RW.Common\
+```
+
+三个库位于同一 Git 仓库，源码直接放在仓库根目录下的同名文件夹中。
+
+---
+
+## 库路径映射
+
+| NuGet 包 | .csproj 路径 | 目标框架 |
+|---|---|---|
+| `RW.Common` | `{RW_ROOT}\RW.Common\RW.Common.csproj` | `netstandard2.0;netstandard2.1` |
+| `RW.Common.WPF` | `{RW_ROOT}\RW.Common.WPF\RW.Common.WPF.csproj` | `net472;net48;net481;net8.0-windows;net9.0-windows;net10.0-windows` |
+| `RW.Base.WPF` | `{RW_ROOT}\RW.Base.WPF\RW.Base.WPF.csproj` | `net472;net48;net481;net8.0-windows;net9.0-windows;net10.0-windows` |
+
+三个包的版本号统一，由 `Source\Directory.Build.props` 中的 `RW_Common_Version` 属性控制，
+包文件位于模板仓库根目录的 `Nugets\` 文件夹（通过根目录 `nuget.config` 注册为 `PrivateNuget` 源）。
+
+> **依赖层次**：`RW.Common`（纯 .NET 基础库）→ `RW.Common.WPF`（WPF 控件/转换器/扩展）
+> → `RW.Base.WPF`（应用框架：DI、生命周期、事件聚合、ViewModel 服务）。
+>
+> **多框架含义**：
+> - `RW.Common` 是 `netstandard2.0/2.1` 类库，API 受限于该标准，
+>   不能使用较新 .NET 才有的 API（如 `ISpanParsable<T>`、`IAsyncEnumerable<T>` 等）。
+> - `RW.Common.WPF` 与 `RW.Base.WPF` 同时面向 .NET Framework 4.7.2 到 .NET 10，
+>   用 `#if` 条件编译隔离版本差异。向这些库中添加新 API 时，需确保所有目标框架都能编译通过。
+
+### 搜索示例
+
+```powershell
+# 搜索某个类定义
+Grep pattern="class ClassName" path="{RW_ROOT}"
+
+# 搜索扩展方法
+Grep pattern="public static.*this" path="{RW_ROOT}\RW.Common\Helpers\"
+
+# 浏览某个库的文件结构
+Glob glob_pattern="**/*.cs" target_directory="{RW_ROOT}\RW.Common\"
+```
+
+---
+
+## 各库结构速查
+
+### RW.Common — 核心基础库
+
+命名空间前缀 `RW.Common.*`，目录与命名空间一一对应：
+
+| 目录 | 关键类型 |
+|---|---|
+| `Attributes\` | `AssignableAttribute`, `EnumDisplayAttribute`, `InitializeAttribute`, `TooltipAttribute` |
+| `Commands\` | `MethodCommand`, `AsyncMethodCommand` |
+| `Comparers\` | `CaseInsensitiveStringComparer`, `FilePathStringComparer` |
+| `Cryptography\` | `Base64Helper`, `MD5Helper`, `UriHelper` |
+| `Data\` | `Vector2`, `Vector2F`, `Vector2Int`, `Vector2Mutable`, `PrecisionBuilder` |
+| `Data\Arrays\` | `ReadonlyMatrix` |
+| `Data\Collections\` | `BidirectionalDictionary`, `ListDictionary` |
+| `Data\Concurrent\` | `ConcurrentLinkedList` |
+| `Data\Lists\` | `CyclicReadOnlyList`, `ExtendReadonlyList`, `ObjectReadonlyList`, `RangeDataReadList`, `ReversedReadonlyList`, `SelectorReadonlyList` |
+| `Enums\` | `EncodingType`, `Vector2SortMode` |
+| `Events\` | `PayloadEventArgs`, `PayloadCancelEventArgs`, `PropertyValueUpdatedEventArgs`, `TypedEventHandler` |
+| `Exceptions\` | `FilePathNotFoundException` |
+| `Helpers\` | `StringHelper`, `FileHelper`, `DirectoryHelper`, `NumberHelper`, `CollectionHelper`（Array/Collection/Enumerable/List/Matrix 分部）、`DictionaryHelper`, `DateTimeHelper`, `EnumHelper`, `ReflectionHelper`, `SerializationHelper`, `ProcessHelper`, `RandomHelper`, `RangeHelper`, `TypeHelper`, `DataTableHelper` 等 |
+| `Interfaces\` | `IAssignable`, `IDataTable`, `IEnumDisplayHandler`, `IReadonlyMatrix`, `IVector2` |
+| `Models\` | `BindModelBase`, `BindModelBaseEx`, `BindObject`, `EnumItem`, `ObjectWrapper`, `ObservableHashSet`, `Range`, `SimpleColor`, `VersionStruct` |
+| `Utilities\` | `AssignUtility`, `EnumDisplayManagerBase`, `FolderNameValidator`, `PathValidator`, `RunLimiter` |
+
+### RW.Common.WPF — WPF 扩展库
+
+命名空间前缀 `RW.Common.WPF.*`，XAML 前缀习惯用 `wpf:`（`xmlns:wpf="RW.Common.WPF"`）：
+
+| 目录 | 关键类型 |
+|---|---|
+| `Controls\` | `TitleContent`, `NumberBox`, `MenuButton`, `ButtonPopup`, `CustomPopup`, `NotifyIcon`, `FontIcon`, `DataGridExtended`, `EnumBindingComboBox`, `SpacingStackPanel`, `AutoColumnsUniformGrid`, `ClippingBorder` |
+| `Converters\` | `Boolean2VisibilityConverter`, `EnumDisplayConverter`, `ColorToBrushConverter`, `FileSizeDisplayConverter`, `FormatConverter` 等 40+ 个通用转换器 |
+| `Extensions\` | `BindingProxies`, `CommandProxy`, `ControlExtension`（Context/DragDrop/Focus/Keyboard/Layout/Loaded/Mouse 分部）、`WindowExtension`, `DataGridExtension`, `TextBoxExtension`, `TreeViewExtension`, `ViewModelExtension` 等 |
+| `Helpers\` | `ViewHelper`, `WindowHelper`, `FileActionHelper`, `ColorHelper`, `DispatcherHelper`, `IconHelper`, `AppHelper`, `DataGridHelper`, `KeyboardHelper`, `SystemHelper` 等 |
+| `MarkupExtensions\` | `EnumBindingMarkupExtension`, `StringFormatMarkupExtension` |
+| `Models\` | `ContextMenuModel`, `CollectionSearchFilter`, `ControlTokenManager`, `JobObject` |
+| `Utilities\` | `AsyncDebouncer`, `DebounceDispatcher`, `CaptureScreenshot`, `PropertyChangeNotifier`, `WindowActivator`, `EnumDisplayManagerWPF` |
+| `Utilities\Timers\` | `CompensatingTimer`, `DispatcherTimerController`, `SystemTimerController`, `ThreadingTimerController`, `TimerControllerBase` |
+| `ViewModels\` | `ViewModelBase`, `ContextMenuViewModel` |
+| `Virtualization\` | `VirtualizingWrapPanel`, `VirtualizingItemsControl`, `VirtualizingPanelBase`, `ItemContainerManager` |
+| `Interop\` | `InteropMethods`, `InteropValues` 及各类 `SafeHandle` 封装 |
+
+### RW.Base.WPF — 应用框架层
+
+命名空间前缀 `RW.Base.WPF.*`，XAML 前缀习惯用 `base:`（`xmlns:base="RW.Base.WPF"`）。
+**应用的启动流程、依赖注入、生命周期、ViewModel 服务全部来自这个库**：
+
+| 目录 | 关键类型 |
+|---|---|
+| （根） | `ApplicationBase` — `App` 的基类，驱动整个启动流程 |
+| `Configs\` | `FolderConfig`, `DebugConfig`, `MapperConfig` |
+| `DependencyInjections\` | `ISingletonDependency`, `ITransientDependency`, `INoDependency` |
+| `Events\` | `IEventAggregator`, `EventAggregator`, `PubSubEvent`, `SubscriptionToken`, `ThreadOption` |
+| `Extensions\` | `IoC`, `IoCInitializer`, `DllLoader`, `DISource`, `DebugLog`, `DebugLoggerBase`, `AppArgsService` |
+| `Handlers\` | `NativeDragDropHandlerBase` |
+| `Interfaces\` | `IStartup`, `IApplication`, `IAppManager`, `IFolderConfig`, `IStatusReport`, `IPriority`, `IAppInitialize`, `IAppInitializeAsync`, `IAppClosedHandler` |
+| `Models\` | `AppDiagnosticsModel` |
+| `Services\` | `JsonSettingsServiceBase`, `DiagnosticsService` |
+| `ViewModels\` | `AppManager`, `StatusReport` |
+| `ViewModelServices\` | `TypedUIObjectService`, `DispatcherServiceEx`, `MessageBoxService`, `CurrentWindowServiceEx`, `EventsService`, `FrameworkElementDragDropService` |
+
+> **注意**：`IEventAggregator` 来自 `RW.Base.WPF.Events`，用 `using RW.Base.WPF.Events;` 引入。
+
+---
+
+## 常用 Using 指令速查
+
+```csharp
+// 基础扩展方法（最常用）
+using RW.Common.Helpers;
+using RW.Common.Models;
+using RW.Common.Utilities;
+
+// WPF 扩展
+using RW.Common.WPF.Helpers;
+using RW.Common.WPF.Converters;
+using RW.Common.WPF.Extensions;
+using RW.Common.WPF.Controls;
+using RW.Common.WPF.Utilities.Timers;
+
+// 依赖注入与生命周期
+using RW.Base.WPF.DependencyInjections;
+using RW.Base.WPF.Interfaces;
+using RW.Base.WPF.Extensions;
+
+// 事件聚合
+using RW.Base.WPF.Events;
+
+// ViewModel 服务
+using RW.Base.WPF.ViewModelServices;
+```

@@ -1,0 +1,38 @@
+<#@ template language="C#" debug="false" hostspecific="true"  #>
+<#@ output extension=".xaml" encoding="utf-8" #>
+<#@ assembly name="System.Core" #>
+<#@ assembly name="WindowsBase" #>
+<#@ import namespace="System" #>
+<#@ import namespace="System.IO" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="System.Text.RegularExpressions" #>
+
+<ResourceDictionary
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:PresentationOptions="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"
+	xmlns:sys="clr-namespace:System;assembly=mscorlib">
+
+<#
+    string iconDirectory = Path.GetDirectoryName(Host.TemplateFile);
+	string[] iconFiles =
+		Directory.GetFiles(iconDirectory, "*.png")
+		.Concat(Directory.GetFiles(iconDirectory, "*.jpg"))
+		.Concat(Directory.GetFiles(iconDirectory, "*.gif"))
+		.Concat(Directory.GetFiles(iconDirectory, "*.ico"))
+	.ToArray();
+
+	foreach (string file in iconFiles)
+    {
+        string extension = Path.GetExtension(file);
+        string fileName = Path.GetFileNameWithoutExtension(file) + "_" + extension.Substring(1).ToUpper();
+		string relativePath = Path.GetFileName(file);
+
+#>
+    <BitmapImage x:Key="<#= fileName #>" UriSource="<#= relativePath #>"/>
+<#
+    }
+#>
+
+</ResourceDictionary>

@@ -1,0 +1,46 @@
+﻿<ResourceDictionary
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:sys="clr-namespace:System;assembly=mscorlib">
+
+
+	<sys:String x:Key="SampleText_Short">系统准备就绪</sys:String>
+
+	<sys:String x:Key="SampleText_Medium">正在同步设备配置数据，这可能需要几分钟时间，请耐心等待...</sys:String>
+
+	<sys:String x:Key="SampleText_Long">这是一段非常长的测试文本，主要用于测试在 UI 界面（如 TextBlock 或 TextBox）中是否能够正确进行自动换行（TextWrapping="Wrap"）以及在空间不足时是否能正确显示省略号（TextTrimming="CharacterEllipsis"）。在处理复杂的设备描述、日志记录或者详细的系统报警信息时，经常会遇到这种超长跨行的文本内容展示需求。</sys:String>
+
+	<sys:String x:Key="SampleFileName_Short">config.json</sys:String>
+
+	<sys:String x:Key="SampleFileName_Long">MyApp_Device_Export_Data_20231025_Final_Version_V2_With_All_Channels.csv</sys:String>
+
+	<sys:String x:Key="SampleFolderName_Short">Cache</sys:String>
+
+	<sys:String x:Key="SampleFolderName_Long">Temp_Device_Firmware_OTA_Update_Packages_2023</sys:String>
+
+	<sys:String x:Key="SamplePath_FolderShort">C:\MyApp\Data</sys:String>
+
+	<sys:String x:Key="SamplePath_FolderLong">C:\Users\Administrator\AppData\Local\Programs\SimpleCollectionHub\Framework\Resources\Templates\Default\Configurations\Backups</sys:String>
+
+	<sys:String x:Key="SamplePath_FileShort">D:\Logs\system.log</sys:String>
+
+	<sys:String x:Key="SamplePath_FileLong">C:\Users\Administrator\AppData\Local\Programs\SimpleCollectionHub\Framework\Resources\Templates\Default\Configurations\AdvancedNetworkSettings_Backup.json</sys:String>
+	<sys:String x:Key="SampleException_Short">网络连接超时，请检查您的网络设置 (Error Code: 0x80072EE2)。</sys:String>
+
+	<sys:String x:Key="SampleException_NullRef">System.NullReferenceException: 未将对象引用设置到对象的实例。</sys:String>
+
+	<sys:String x:Key="SampleStackTrace" xml:space="preserve">System.InvalidOperationException: 无法连接到设备，目标主机积极拒绝。
+   在 SimpleCollectionHub.Framework.Services.DataCacheService.GetAllData(Guid projectId, TimeSpan duration) 位置 D:\Projects\MyApp\Services\DataCacheService.cs:行 45
+   在 SimpleCollectionHub.Framework.ViewModels.Projects.ProjectViewModel.HandleProjectChanged(ProjectUpdatedType type) 位置 D:\Projects\MyApp\ViewModels\ProjectViewModel.cs:行 112
+   在 System.Threading.Tasks.Task.&lt;&gt;c.&lt;ThrowAsync&gt;b__128_0(Object state)
+   在 System.Windows.Threading.ExceptionWrapper.InternalRealCall(Delegate d, Object args, Int32 numArgs)
+   在 System.Windows.Threading.ExceptionWrapper.TryCatchWhen(Object source, Delegate d, Object args, Int32 numArgs, Delegate catchHandler)</sys:String>
+
+	<sys:String x:Key="SampleGuid">b2f4c9a7-8e1d-4c3b-9a2f-1e8c7d6b5a4f</sys:String>
+
+	<sys:String x:Key="SampleUrl">https://api.MyApp.com/v1/devices/status?region=cn-east-1&amp;filter=active</sys:String>
+
+	<sys:String x:Key="SampleIpAddress">192.168.254.101:8080</sys:String>
+
+
+</ResourceDictionary>

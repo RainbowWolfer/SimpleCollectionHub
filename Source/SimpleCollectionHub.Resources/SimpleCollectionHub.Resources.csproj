@@ -1,0 +1,69 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<UseWPF>true</UseWPF>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\SimpleCollectionHub.Strings\SimpleCollectionHub.Strings.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Resource Include="Fonts\Segoe Fluent Icons.ttf" />
+		<Resource Include="Icons\*.ico" />
+		<Resource Include="Icons\*.png" />
+		<Resource Include="Images\*.png" />
+		<Resource Include="Images\*.jpg" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Update="Icons\IconResources.tt">
+			<Generator>TextTemplatingFileGenerator</Generator>
+			<LastGenOutput>IconResources.cs</LastGenOutput>
+		</None>
+		<None Update="Icons\Icons.tt">
+			<Generator>TextTemplatingFileGenerator</Generator>
+			<LastGenOutput>Icons.xaml</LastGenOutput>
+		</None>
+		<None Update="Images\ImageResources.tt">
+			<Generator>TextTemplatingFileGenerator</Generator>
+			<LastGenOutput>ImageResources.cs</LastGenOutput>
+		</None>
+		<None Update="Images\Images.tt">
+			<Generator>TextTemplatingFileGenerator</Generator>
+			<LastGenOutput>Images.xaml</LastGenOutput>
+		</None>
+	</ItemGroup>
+
+	<!-- Text Template Transformation Toolkit -->
+	<ItemGroup>
+		<Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Compile Update="Icons\IconResources.cs">
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+			<DependentUpon>IconResources.tt</DependentUpon>
+		</Compile>
+		<Compile Update="Images\ImageResources.cs">
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+			<DependentUpon>ImageResources.tt</DependentUpon>
+		</Compile>
+	</ItemGroup>
+
+	<ItemGroup>
+		<Page Update="Icons\Icons.xaml">
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+			<DependentUpon>Icons.tt</DependentUpon>
+		</Page>
+		<Page Update="Images\Images.xaml">
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+			<DependentUpon>Images.tt</DependentUpon>
+		</Page>
+	</ItemGroup>
+
+</Project>

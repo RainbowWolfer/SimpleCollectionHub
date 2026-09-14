@@ -1,0 +1,19 @@
+﻿<base:ApplicationBase
+	x:Class="SimpleCollectionHub.App"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:base="RW.Base.WPF"
+	xmlns:local="clr-namespace:SimpleCollectionHub">
+
+	<Application.Resources>
+		<ResourceDictionary>
+			<ResourceDictionary.MergedDictionaries>
+
+				<ResourceDictionary Source="pack://application:,,,/SimpleCollectionHub.Framework;component/Resources/FrameworkTheme.xaml"/>
+				<ResourceDictionary Source="Resources/CollectionTheme.xaml"/>
+
+			</ResourceDictionary.MergedDictionaries>
+		</ResourceDictionary>
+	</Application.Resources>
+
+</base:ApplicationBase>

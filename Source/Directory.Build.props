@@ -1,0 +1,45 @@
+<Project>
+
+	<!-- See https://aka.ms/dotnet/msbuild/customize for more details on customizing your build -->
+	<PropertyGroup>
+		<DefaultTargetFramework>net10.0</DefaultTargetFramework>
+		<TargetFramework>$(DefaultTargetFramework)-windows</TargetFramework>
+
+		<!--<LangVersion>12</LangVersion>-->
+		<LangVersion>14</LangVersion>
+		<Nullable>annotations</Nullable>
+
+		<!-- 关闭与目标框架（TFM）相关的支持性警告，例如使用旧版或非官方支持的 TFM 时的提示 -->
+		<SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
+
+		<!-- 禁用“目标框架已到生命周期终点(EOL)”的构建警告，避免在使用旧框架时被 MSBuild 提醒 -->
+		<CheckEolTargetFramework>false</CheckEolTargetFramework>
+
+		<!-- 隐藏 .NET SDK 预览版的提示信息（例如使用 preview SDK 时的黄色警告） -->
+		<SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
+
+
+		<Company>RainbowWolfer</Company>
+		<Authors>RainbowWolfer</Authors>
+		<Copyright>RainbowWolfer</Copyright>
+
+
+		<Version>1.0.1</Version>
+
+		<!-- RW.Common 系列内部库统一版本号，包位于仓库根目录的 Nugets 文件夹 -->
+		<RW_Common_Version>1.0.54</RW_Common_Version>
+
+		<BuildTime>$([System.DateTime]::Now.ToString('yyyyMMdd.HHmm'))</BuildTime>
+
+		<InformationalVersion>$(Version)-build.$(BuildTime)-$(Configuration)</InformationalVersion>
+
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="PolySharp" Version="1.16.0">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+	</ItemGroup>
+
+</Project>

@@ -1,0 +1,745 @@
+---
+description: 项目 C# 语法规范，适用于所有 C# 代码
+alwaysApply: true
+---
+
+# C# 语法规范
+
+## 语言版本
+
+**目标语言：C# 14**。项目使用 .NET 10.0，遵循 C# 14 语法。
+
+---
+
+## DRY 原则（Don't Repeat Yourself）
+
+**严禁在整个代码库中复制粘贴相同的代码片段。** 这是最基础的代码质量要求，AI 生成代码时尤其容易违反。
+
+### 何时必须抽象
+
+| 场景 | 处理方式 | 示例 |
+|---|---|---|
+| 同一段逻辑在 **2 个及以上位置** 出现 | 提取为方法 / 属性 / 扩展方法 | 多个 ViewModel 中相同的 `CanExecute` 条件 |
+| 多个 ViewModel 共享相同行为 | 提取到基类 `ViewModelBaseEx` 的 protected 方法中 | 加载状态管理、错误处理 |
+| 相同的 XAML 控件组合 | 提取为 `UserControl` / `DataTemplate` / `Style` | 重复的工具栏按钮组 |
+| 相同的转换逻辑 | 提取到 `Converter` 或 Mapper 中 | 多个 View 中相同的值转换 |
+| 相同的常量字符串 / 数字 | 提取为 `const` / `static readonly` | 文件扩展名、配置键名 |
+
+### C# 反例与正例
+
+```csharp
+// ❌ DRY 违规：两个 ViewModel 中复制了相同的文件导出逻辑
+// AlarmLogViewModel.cs
+private void ExportFile()
+{
+    OpenFileDialog.ShowDialog(fileInfo =>
+    {
+        string path = fileInfo.GetFullName();
+        using FileStream stream = new(path, FileMode.Create);
+        // 导出逻辑...
+        stream.Close();
+    });
+}
+
+// MonitorMainViewModel.cs
+private void ExportFile()
+{
+    OpenFileDialog.ShowDialog(fileInfo =>
+    {
+        string path = fileInfo.GetFullName();
+        using FileStream stream = new(path, FileMode.Create);
+        // 导出逻辑...
+        stream.Close();
+    });
+}
+
+// ✅ DRY 正确：提取到 Utility 或 Service 中
+// Helpers/FileExportHelper.cs
+internal static class FileExportHelper
+{
+    public static void ExportWithDialog(
+        IOpenFileDialogService dialog,
+        Action<FileStream> writeAction
+    )
+    {
+        dialog.ShowDialog(fileInfo =>
+        {
+            string path = fileInfo.GetFullName();
+            using FileStream stream = new(path, FileMode.Create);
+            writeAction(stream);
+        });
+    }
+}
+```
+
+### XAML 反例与正例
+
+```xml
+<!-- ❌ DRY 违规：多个视图中复制了相同的按钮样式 -->
+<Button Width="80" Height="32" Background="#007ACC" Foreground="White"
+        FontSize="14" BorderThickness="0" Cursor="Hand">
+    <Button.Template>
+        <ControlTemplate TargetType="Button">
+            <Border Background="{TemplateBinding Background}"
+                    CornerRadius="4">
+                <ContentPresenter HorizontalAlignment="Center"
+                                  VerticalAlignment="Center"/>
+            </Border>
+        </ControlTemplate>
+    </Button.Template>
+</Button>
+
+<!-- ✅ DRY 正确：提取到 Style 资源中 -->
+<Style x:Key="PrimaryButtonStyle" TargetType="Button">
+    <Setter Property="Width" Value="80"/>
+    <Setter Property="Height" Value="32"/>
+    <Setter Property="Background" Value="#007ACC"/>
+    ...
+</Style>
+<Button Style="{StaticResource PrimaryButtonStyle}" Content="确定"/>
+```
+
+### 检查点
+
+写代码前先问自己：
+1. 这段逻辑是否已经在其他地方出现过了？
+2. 如果未来需要修改这段逻辑，需要改几处？
+3. 能否通过方法提取 / 基类 / Converter / Style 消除重复？
+
+---
+
+## 格式与排版
+
+- **始终使用大括号**，哪怕单行 `if`/`else`/`for`/`foreach`/`while` 等也不能省略
+- **不要把多条语句挤在一行**
+- **不要**因语句过长就把本可一行的语句强行拆成两行
+- **不要**添加过量的空行；DP 组间 1~2 空行，方法间 1 空行即可
+- **不要**出现贯穿全文的、每行代码之间无意义的空行；语句应紧凑连续，只在逻辑段落之间留空行
+
+```csharp
+// ✅ 语句连续，仅在方法/逻辑块之间留空行
+public IDelegateCommand UploadFileCommand => field ??= new DelegateCommand(UploadFile, CanUploadFile);
+private void UploadFile()
+{
+    if (!CanUploadFile())
+    {
+        return;
+    }
+    DoUpload();
+}
+private bool CanUploadFile() => SelectedFile is not null;
+
+// ❌ 每行之间都插空行
+public IDelegateCommand UploadFileCommand => field ??= new DelegateCommand(UploadFile, CanUploadFile);
+
+private void UploadFile()
+{
+
+    if (!CanUploadFile())
+    {
+
+        return;
+
+    }
+
+    DoUpload();
+
+}
+
+private bool CanUploadFile() => SelectedFile is not null;
+```
+
+```csharp
+// ✅
+if (name.IsBlank())
+{
+    return;
+}
+
+// ❌ 省略大括号
+if (name.IsBlank()) return;
+
+// ❌ 多条语句挤一行
+if (a) { DoA(); DoB(); }
+```
+
+---
+
+## 代码注释
+
+### 接口成员必须注释（强制）
+
+**接口（interface）中的所有属性与函数成员必须使用 XML 文档注释 `///`**，描述其用途、参数、返回值。实现类不强制重复注释。
+
+```csharp
+// ✅ 接口成员全部使用 XML 文档注释
+public interface IProjectService
+{
+    /// <summary>获取项目唯一标识。</summary>
+    Guid ProjectId { get; }
+
+    /// <summary>当前是否已加载完成。</summary>
+    bool IsLoaded { get; set; }
+
+    /// <summary>异步加载项目数据。</summary>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>加载是否成功。</returns>
+    Task<bool> LoadAsync(CancellationToken cancellationToken);
+}
+
+// ✅ 实现类无需重复注释
+internal class ProjectService : IProjectService
+{
+    public Guid ProjectId { get; }
+    public bool IsLoaded { get; set; }
+    public async Task<bool> LoadAsync(CancellationToken cancellationToken) { ... }
+}
+
+// ❌ 接口成员缺失注释
+public interface IProjectService
+{
+    Guid ProjectId { get; }
+    Task<bool> LoadAsync(CancellationToken cancellationToken);
+}
+```
+
+### 注释率 ≥ 30%
+
+除接口外的其余代码（实现类、ViewModel、服务、辅助类等），**注释行数占代码总行数的比例应不低于 30%**：
+
+- 计算口径：`注释行数 / 代码总行数 ≥ 30%`
+- 注释行包括 `///`、`//` 注释以及独立的文档标签行（`<summary>`、`<param>` 等 XML 标签行）
+- **鼓励**对类、公开属性、命令、私有方法、复杂逻辑块添加注释，说明"为什么这样写"而非"做了什么"
+- 显而易见的 getter/setter、单行属性等无需强加注释，但整体比例应达标
+
+```csharp
+// ✅ 示例：服务类有充分注释
+/// <summary>
+/// 项目数据服务，负责项目文件的加载、保存与缓存。
+/// </summary>
+internal class ProjectService : IProjectService
+{
+    // 项目缓存，避免重复 IO 读取
+    private Project? _cached;
+
+    /// <summary>异步加载项目，支持取消。</summary>
+    public async Task<bool> LoadAsync(CancellationToken cancellationToken)
+    {
+        // 先尝试命中缓存
+        if (_cached is not null)
+        {
+            return true;
+        }
+
+        // 从磁盘读取，并在取消时及时返回
+        ...
+    }
+}
+```
+
+---
+
+## 成员顺序
+
+类内元素默认按以下顺序排列（可根据实际情况灵活调整）：
+
+```
+const → static → event → readonly field → field → property → 构造函数 → 方法
+```
+
+---
+
+## 右括号位置
+
+多行参数列表、方法调用实参、Primary Constructor、record 声明等，**闭合小括号 `)` 必须单独占一行**，不与最后一项同行：
+
+```csharp
+// ✅ 方法调用
+var result = await service.GetDataAsync(
+    project.ID,
+    snapshots,
+    cancellationToken
+);
+
+// ✅ Primary Constructor
+internal class PredictionViewModel(
+    IProjectService projectService,
+    IDataService dataService
+) : ViewModelBaseEx;
+
+// ✅ record
+private sealed record ReloadPreviewResult(
+    IReadOnlyList<string> SheetNames,
+    string ModelName
+);
+
+// ❌ 右括号与最后一项同行
+var result = await service.GetDataAsync(
+    project.ID,
+    snapshots,
+    cancellationToken);
+
+internal class PredictionViewModel(
+    IProjectService projectService,
+    IDataService dataService) : ViewModelBaseEx;
+
+private sealed record ReloadPreviewResult(
+    IReadOnlyList<string> SheetNames,
+    string ModelName);
+```
+
+---
+
+## 命名空间与 Using
+
+始终使用**文件级命名空间**（File-scoped namespace），不要使用块级：
+
+```csharp
+// ✅
+namespace SimpleCollectionHub.Framework.Services;
+
+// ❌
+namespace SimpleCollectionHub.Framework.Services
+{
+}
+```
+
+**禁止在代码中写全限定名**，通过文件顶部的 `using` 引入后直接使用短名称即可：
+
+```csharp
+// ✅ 顶部有 using System.Diagnostics;
+Debug.WriteLine($"DBC mapping JSON parse error: {ex.Message}");
+
+// ❌ 不要写全限定名
+System.Diagnostics.Debug.WriteLine($"DBC mapping JSON parse error: {ex.Message}");
+```
+
+---
+
+## 构造函数与依赖注入
+
+优先使用 **Primary Constructor** 进行依赖注入。依赖项较多、需要换行时，闭合 `)` 单独占一行（见「右括号位置」）：
+
+```csharp
+// ✅ 单行（依赖少）
+internal class XxxService(IXxxService xxxService) : IXxxService
+{
+}
+
+// ✅ 多行
+internal class XxxService(
+    IXxxService xxxService,
+    IAppSettingsService settingsService
+) : IXxxService
+{
+}
+
+// ❌ 传统写法（仅在需要 this 赋值给 readonly 字段时才用）
+internal class XxxService : IXxxService
+{
+    private readonly IXxxService _xxxService;
+    public XxxService(IXxxService xxxService) { _xxxService = xxxService; }
+}
+```
+
+---
+
+## 属性懒加载（`field` 关键字）
+
+使用 C# 14 的 `field` 关键字，无需手动声明 backing field：
+
+```csharp
+// ✅
+public IDelegateCommand DoSomethingCommand => field ??= new DelegateCommand(DoSomething);
+
+public PaginationDataHandler? Func
+{
+    get => field;
+    set { field = value; SomeCommand.RaiseCanExecuteChanged(); }
+}
+
+// ❌ 旧写法
+private DelegateCommand? _doSomethingCommand;
+public IDelegateCommand DoSomethingCommand => _doSomethingCommand ??= new DelegateCommand(DoSomething);
+```
+
+---
+
+## 集合初始化
+
+使用集合表达式 `[]` 代替 `new List<T>()`、`new T[]{}` 等：
+
+```csharp
+// ✅
+List<string> items = [];
+Dictionary<string, int> map = [];
+string[] arr = [];
+
+// ❌
+List<string> items = new List<string>();
+var arr = new string[0];
+```
+
+---
+
+## Target-typed `new`
+
+类型已知时使用 `new()` 省略类型名：
+
+```csharp
+// ✅
+LoadingStatus status = new();
+ProjectClient client = new(grpcService.GrpcChannel);
+
+// ❌
+LoadingStatus status = new LoadingStatus();
+```
+
+---
+
+## `var` 使用
+
+**禁止使用 `var`**，始终写出明确类型：
+
+```csharp
+// ✅
+ProjectClient client = new(channel);
+GetResponse response = await client.GetAsync(request);
+foreach (KeyValuePair<string, string> kvp in response.Values) { }
+
+// ❌
+var client = new ProjectClient(channel);
+var response = await client.GetAsync(request);
+foreach (var kvp in response.Values) { }
+```
+
+---
+
+## Null 检查
+
+优先使用模式匹配而非比较运算符：
+
+```csharp
+// ✅
+if (project is null) { }
+if (project is not null) { }
+
+// ❌
+if (project == null) { }
+if (project != null) { }
+```
+
+使用 `?.`、`??`、`??=` 简化 null 处理：
+
+```csharp
+string name = project?.Name ?? "未命名";
+_instance ??= new XxxService();
+```
+
+---
+
+## RW.Common.Helpers 扩展方法
+
+编写代码前优先使用 `RW.Common.Helpers` 中的扩展方法，减少重复代码。
+
+### 字符串
+
+| 方法 | 用途 | 示例 |
+|------|------|------|
+| `IsBlank()` | 替代 `string.IsNullOrWhiteSpace` | `if (name.IsBlank()) return;` |
+| `IsNotBlank()` | 非空判断 | `if (path.IsNotBlank()) { ... }` |
+| `NotBlankCheck()` | 空白转 null，配合 `??` | `Message = msg.NotBlankCheck() ?? "加载中";` |
+
+```csharp
+// ✅
+if (name.IsBlank()) { return; }
+string title = detail.Title.NotBlankCheck() ?? "未命名任务";
+
+// ❌
+if (string.IsNullOrWhiteSpace(name)) { return; }
+```
+
+### 集合
+
+| 方法 | 用途 | 示例 |
+|------|------|------|
+| `IsEmpty()` | 集合为空 | `if (list.IsEmpty()) return;` |
+| `IsNotEmpty()` | 集合非空，常用于 CanExecute | `CanDelete() => SelectedItems.IsNotEmpty();` |
+| `AddRange()` | 批量添加 | `Models.AddRange(models);` |
+| `ForEach()` | 集合遍历副作用 | `stages.ForEach(s => s.Status = ProgressStatus.Canceled);` |
+
+```csharp
+// ✅
+if (tables.IsEmpty()) { return; }
+Models.AddRange(models);
+Stages.Where(i => i.Status == ProgressStatus.InProgress).ForEach(i => i.Status = ProgressStatus.Canceled);
+
+// ❌
+if (list == null || list.Count == 0) { return; }
+foreach (StageProgressViewModel s in stages) { s.Status = ProgressStatus.Canceled; }
+```
+
+### 集合变更处理
+
+监听 `NotifyCollectionChangedEventArgs` 时，使用 `RW.Common.Helpers` 的扩展方法简化代码：
+
+```csharp
+// ✅ 使用扩展方法
+private void OnMessagesChanged(object? sender, NotifyCollectionChangedEventArgs e)
+{
+    // 处理新增项：自动遍历、过滤已订阅、订阅事件
+    e.HandleCollectionChangedNewItems(
+        items: items =>
+        {
+            foreach (ChatMessageViewModel item in items)
+            {
+                item.PropertyChanged += OnMessagePropertyChanged;
+            }
+        },
+        predicate: item => _subscribedMessages.Add(item)
+    );
+
+    // 处理移除项：自动遍历、执行清理
+    e.HandleCollectionChangedOldItems(
+        items: items =>
+        {
+            foreach (ChatMessageViewModel item in items)
+            {
+                UnsubscribeMessageItem(item);
+            }
+        }
+    );
+}
+
+// ❌ 手动判断 e.NewItems/e.OldItems
+private void OnMessagesChanged(object? sender, NotifyCollectionChangedEventArgs e)
+{
+    if (e.NewItems != null)
+    {
+        foreach (ChatMessageViewModel item in e.NewItems)
+        {
+            if (_subscribedMessages.Add(item))
+            {
+                item.PropertyChanged += OnMessagePropertyChanged;
+            }
+        }
+    }
+
+    if (e.OldItems != null)
+    {
+        foreach (ChatMessageViewModel item in e.OldItems)
+        {
+            UnsubscribeMessageItem(item);
+        }
+    }
+}
+```
+
+---
+
+## Switch 表达式
+
+能用 switch 表达式的地方优先用，不用 switch 语句：
+
+```csharp
+// ✅
+string label = status switch
+{
+    Status.Running => "运行中",
+    Status.Stopped => "已停止",
+    _ => "未知",
+};
+
+// ❌
+string label;
+switch (status) { ... }
+```
+
+---
+
+## 类型模式匹配
+
+```csharp
+// ✅
+if (obj is ProjectModel project) { }
+
+return obj switch
+{
+    string packUri        => packUri.ToImageSource(),
+    ImageSource source    => source,
+    null                  => null,
+    _                     => null,
+};
+```
+
+---
+
+## 字符串插值
+
+无论是普通字符串拼接、格式化还是日志输出，**始终使用字符串插值（`$""`）**，不要使用参数后置写法（如 `string.Format` 或 `LogDebug("...{Length}", value)` 的形式）：
+
+```csharp
+// ✅ 字符串插值
+string message = $"用户 {user.Name} 在 {DateTime.Now:HH:mm} 提交了 {count} 条记录";
+Debug.WriteLine($"DBC mapping response length: {responseText.Length}");
+
+// ❌ 参数后置
+string message = string.Format("用户 {0} 在 {1:HH:mm} 提交了 {2} 条记录", user.Name, DateTime.Now, count);
+Debug.WriteLine("DBC mapping response length: {0}", responseText.Length);
+```
+
+---
+
+## JSON 序列化
+
+项目已引用 **Newtonsoft.Json**，在可以使用的情况下**优先使用 Newtonsoft.Json**，不要用 `System.Text.Json`（除非该 API 或框架强制要求）：
+
+```csharp
+// ✅
+using Newtonsoft.Json;
+string json = JsonConvert.SerializeObject(model);
+MyModel model = JsonConvert.DeserializeObject<MyModel>(json);
+
+// ❌（除非框架强制）
+using System.Text.Json;
+string json = JsonSerializer.Serialize(model);
+```
+
+---
+
+## 异步方法
+
+### Fire-and-forget
+
+不需要等待结果的异步调用，用 `_` 丢弃：
+
+```csharp
+// ✅
+_ = RefreshAsync();
+
+// ❌ 不要直接不处理（会丢失警告）
+RefreshAsync();
+```
+
+### 避免 Task.FromResult
+
+能改 `async` 方法就直接改，避免用 `Task.FromResult(...)` 包装同步结果：
+
+```csharp
+// ✅
+public async Task<ConfirmResponse> ConfirmAsync()
+{
+    await Task.CompletedTask;
+    return new ConfirmResponse { Success = true };
+}
+
+// ❌
+public Task<ConfirmResponse> ConfirmAsync()
+{
+    return Task.FromResult(new ConfirmResponse { Success = true });
+}
+```
+
+---
+
+## 异常处理
+
+### Debug.WriteLine(ex) 优先输出
+
+在任何 `catch (Exception ex)` 块中，**进行 log 记录或 MessageBox 弹窗前，必须先写 `Debug.WriteLine(ex)`** 将异常信息输出到调试控制台（Output 窗口）。在其他处理 exception 的场合，也应尽量使用 `Debug.WriteLine(ex)`：
+
+```csharp
+// ✅ Log 记录前先 Debug.WriteLine
+catch (Exception ex)
+{
+    Debug.WriteLine(ex);
+    DebugLog.LogHandledException(ex, "保存配置");
+}
+
+// ✅ MessageBox 弹窗前先 Debug.WriteLine
+catch (Exception ex)
+{
+    Debug.WriteLine(ex);
+    messageBoxService.Show($"操作失败: {ex.Message}", "错误", MessageButton.OK, MessageIcon.Error);
+}
+
+// ✅ 其他异常处理场景
+catch (Exception ex)
+{
+    Debug.WriteLine(ex);
+    LoadingStatus.Error(ex.Message);
+}
+
+// ❌ 没有 Debug.WriteLine
+catch (Exception ex)
+{
+    DebugLog.LogHandledException(ex, "保存配置");
+}
+```
+
+### 日志写入用 DebugLog
+
+项目**不使用 NLog / `ILogger<T>`**。需要把异常落盘时用 `RW.Base.WPF.Extensions.DebugLog`：
+
+| 方法 | 用途 |
+|---|---|
+| `DebugLog.LogHandledException(ex, flag)` | 已捕获、程序可继续运行的异常 |
+| `DebugLog.LogFatalException(ex, flag)` | 导致崩溃/无法恢复的异常 |
+
+日志落在 `AppFolderConfig` 指定的 Debug 目录下的 `Handled\` / `Fatal\` 子目录中。
+普通的调试输出直接用 `Debug.WriteLine`。
+
+---
+
+## 接口与实现同文件
+
+服务类的接口和实现通常放在同一个 `.cs` 文件中：
+
+```csharp
+// XxxService.cs
+public interface IXxxService
+{
+    Task DoSomethingAsync();
+}
+
+internal class XxxService : IXxxService
+{
+    public async Task DoSomethingAsync() { ... }
+}
+```
+
+---
+
+## 其他约定
+
+- **禁止** `.Result`、`.Wait()`，始终用 `await`
+- **Nullable 模式**：项目使用 `annotations`（非 `enable`），不强制所有地方都加 `?`，但返回可能为 null 的方法应标注
+- **`async` 方法命名**：不强制 `Async` 后缀，但同一类内应保持一致
+
+---
+
+## 优先使用内部库
+
+编写新功能前，**先在以下内部库中查找**是否已有可用的方法或工具类，避免重复造轮子：
+
+| 库 | 常用命名空间 | 典型内容 |
+|----|---|---|
+| `RW.Common` | `RW.Common.Helpers` | `IsBlank()`、`IsNotBlank()`、`IsEmpty()`、`HandleCollectionChangedNewItems()` 等扩展方法 |
+| | `RW.Common.Models` | 通用数据模型 |
+| | `RW.Common.Utilities` | 通用工具类 |
+| | `RW.Common.Data.Lists` | 列表数据结构 |
+| `RW.Common.WPF` | `RW.Common.WPF.Helpers` | WPF 辅助方法 |
+| | `RW.Common.WPF.Controls` | 通用 WPF 控件 |
+| | `RW.Common.WPF.Converters` | 通用值转换器 |
+| | `RW.Common.WPF.Extensions` | WPF 扩展方法 |
+| | `RW.Common.WPF.Utilities.Timers` | 定时器工具 |
+| `RW.Base.WPF` | `RW.Base.WPF.DependencyInjections` | `ISingletonDependency`、`ITransientDependency` 等 DI 接口 |
+| | `RW.Base.WPF.Interfaces` | `IStartup`、`IAppInitialize`、`IAppInitializeAsync`、`IAppClosedHandler` 等生命周期接口 |
+| | `RW.Base.WPF.Extensions` | `IoC`、`IoCInitializer`、`DllLoader`、`DISource`、`DebugLog` |
+| | `RW.Base.WPF.Events` | `IEventAggregator`、`PubSubEvent` 事件聚合 |
+| | `RW.Base.WPF.ViewModelServices` | `TypedUIObjectService`、`DispatcherServiceEx`、`MessageBoxService` 等 |
+
+**查找顺序**：`RW.Common.Helpers` → `RW.Common.WPF.Helpers` → `RW.Base.WPF` → 再考虑自己写。
+
+各库的完整目录结构与类型清单见 `rw-libraries-reference` 规则；源码在
+`C:\Users\RainbowWolfer\source\repos\RW.Common`，写代码前先搜源码确认 API 真实存在。

@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<UseWPF>true</UseWPF>
+		<NoWarn>NU1701</NoWarn>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="RW.Base.WPF" Version="$(RW_Common_Version)" />
+		<PackageReference Include="RW.Common" Version="$(RW_Common_Version)" />
+		<PackageReference Include="RW.Common.WPF" Version="$(RW_Common_Version)" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="DevExpressMvvm" Version="24.1.6" />
+		<PackageReference Include="FolderBrowserEx" Version="1.0.1" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="FreeSql" Version="3.5.309" />
+		<PackageReference Include="FreeSql.Extensions.JsonMap" Version="3.5.309" />
+		<PackageReference Include="FreeSql.Provider.Sqlite" Version="3.5.309" />
+		<PackageReference Include="FreeSql.Repository" Version="3.5.309" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\SimpleCollectionHub.Resources\SimpleCollectionHub.Resources.csproj" />
+		<ProjectReference Include="..\SimpleCollectionHub.Strings\SimpleCollectionHub.Strings.csproj" />
+	</ItemGroup>
+
+</Project>

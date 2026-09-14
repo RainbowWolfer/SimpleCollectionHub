@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>SimpleCollectionHub — 原型 4</title>
+	<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+	<div class="app">
+		<header class="titlebar">
+			<div class="titlebar-left">
+				<div class="app-mark" aria-hidden="true"></div>
+				<span class="app-name">SimpleCollectionHub</span>
+				<span class="proto-badge">原型 4</span>
+			</div>
+			<div class="titlebar-actions">
+				<button class="win-btn" type="button" title="最小化" data-action="noop">—</button>
+				<button class="win-btn" type="button" title="最大化" data-action="noop">□</button>
+				<button class="win-btn win-btn-close" type="button" title="关闭" data-action="noop">✕</button>
+			</div>
+		</header>
+
+		<div class="shell">
+			<aside class="sidebar">
+				<div class="sidebar-filter">
+					<div class="filter-head">
+						<div class="sidebar-section-title">筛选</div>
+						<button class="filter-clear" id="clearFilters" type="button" data-action="clear-filters" hidden>清除</button>
+					</div>
+					<div class="search-wrap">
+						<span class="search-icon fluent" aria-hidden="true">&#xE721;</span>
+						<input id="searchInput" type="search" placeholder="名称、路径、字段、标签…" autocomplete="off">
+					</div>
+					<div class="filter-label">标签 · 多选为或</div>
+					<div id="tagBar" class="tag-bar"></div>
+				</div>
+
+				<nav id="groupNav" class="group-nav"></nav>
+
+				<div class="sidebar-footer">
+					<div class="storage-hint">元数据只存在本机 LocalAppData，不会改动原目录。</div>
+					<button class="sidebar-link" type="button" data-action="open-help">
+						<span class="fluent nav-ico" aria-hidden="true">&#xE897;</span>
+						原型说明
+					</button>
+				</div>
+			</aside>
+
+			<main class="main">
+				<div class="toolbar">
+					<div class="toolbar-left">
+						<nav id="crumbs" class="crumbs" aria-label="分组路径"></nav>
+						<div class="title-row">
+							<h1 id="pageTitle">全部收藏</h1>
+							<span id="pageCount" class="muted"></span>
+						</div>
+					</div>
+					<div class="toolbar-right">
+						<select id="incompleteFilter" class="toolbar-select" aria-label="不完整筛选">
+							<option value="all">完整度：全部</option>
+							<option value="any">不完整</option>
+							<option value="path">路径丢失</option>
+							<option value="images">缺少图片</option>
+							<option value="text">缺少文字</option>
+							<option value="links">缺少链接</option>
+						</select>
+						<select id="sortBy" class="toolbar-select" aria-label="组内排序">
+							<option value="name-asc">名称 A–Z</option>
+							<option value="name-desc">名称 Z–A</option>
+							<option value="added-desc">最近加入</option>
+							<option value="added-asc">最早加入</option>
+						</select>
+						<div class="segment" role="tablist" aria-label="视图">
+							<button class="segment-btn is-active" type="button" data-action="view-mode" data-mode="cards">卡片</button>
+							<button class="segment-btn" type="button" data-action="view-mode" data-mode="list">列表</button>
+						</div>
+						<button class="btn" type="button" data-action="open-add-group">新建分组</button>
+						<button class="btn btn-primary" type="button" data-action="open-add-item">添加条目</button>
+					</div>
+				</div>
+				<div id="library" class="library"></div>
+			</main>
+
+			<aside id="detail" class="detail" hidden></aside>
+		</div>
+
+		<div id="overlay" class="overlay" hidden></div>
+		<div id="dialog" class="dialog" hidden role="dialog" aria-modal="true"></div>
+		<div id="lightbox" class="lightbox" hidden>
+			<button class="lightbox-close" type="button" data-action="close-lightbox" aria-label="关闭">✕</button>
+			<div id="lightboxStage" class="lightbox-stage"></div>
+			<div id="lightboxCap" class="lightbox-cap"></div>
+		</div>
+		<div id="contextMenu" class="ctx" hidden></div>
+		<div id="toast" class="toast" hidden></div>
+		<input id="folderPicker" type="file" webkitdirectory directory hidden>
+		<input id="imagePicker" type="file" accept="image/*" multiple hidden>
+	</div>
+
+	<script src="app.js"></script>
+</body>
+</html>

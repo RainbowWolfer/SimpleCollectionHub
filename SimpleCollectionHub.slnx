@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/Source/">
+    <Project Path="Source/SimpleCollectionHub.Framework/SimpleCollectionHub.Framework.csproj" />
+    <Project Path="Source/SimpleCollectionHub.Resources/SimpleCollectionHub.Resources.csproj" />
+    <Project Path="Source/SimpleCollectionHub.Strings/SimpleCollectionHub.Strings.csproj" />
+    <Project Path="Source/SimpleCollectionHub/SimpleCollectionHub.csproj" />
+  </Folder>
+  <Folder Name="/_SolutionItems/">
+    <File Path=".gitattributes" />
+    <File Path=".gitignore" />
+    <File Path="README.md" />
+    <File Path="nuget.config" />
+    <File Path="Source/Directory.Build.props" />
+  </Folder>
+</Solution>

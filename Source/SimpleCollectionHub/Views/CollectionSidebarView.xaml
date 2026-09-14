@@ -1,0 +1,229 @@
+<UserControl
+	x:Class="SimpleCollectionHub.Views.CollectionSidebarView"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:base="RW.Base.WPF"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:dialogs="clr-namespace:SimpleCollectionHub.Views.Dialogs"
+	xmlns:dxmvvm="http://schemas.devexpress.com/winfx/2008/xaml/mvvm"
+	xmlns:f="SimpleCollectionHub.Framework"
+	xmlns:local="clr-namespace:SimpleCollectionHub.Views"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:res="SimpleCollectionHub.Resources"
+	xmlns:s="clr-namespace:SimpleCollectionHub.Strings;assembly=SimpleCollectionHub.Strings"
+	xmlns:vms="clr-namespace:SimpleCollectionHub.ViewModels"
+	xmlns:wpf="RW.Common.WPF"
+	d:DataContext="{d:DesignInstance Type=vms:CollectionSidebarViewModel}"
+	d:DesignHeight="800"
+	d:DesignWidth="276"
+	DataContext="{base:DISource Type=vms:CollectionSidebarViewModel}"
+	Style="{DynamicResource UserControlStyle}"
+	mc:Ignorable="d">
+
+	<dxmvvm:Interaction.Behaviors>
+		<f:DialogService x:Name="AddGroupDialog" ContentType="{x:Type dialogs:AddGroupDialog}"/>
+		<f:DialogService x:Name="AddItemDialog" ContentType="{x:Type dialogs:AddItemDialog}"/>
+		<f:DialogService x:Name="GroupIconDialog" ContentType="{x:Type dialogs:GroupIconDialog}"/>
+		<f:DialogService x:Name="AboutDialog" ContentType="{x:Type dialogs:AboutDialog}"/>
+	</dxmvvm:Interaction.Behaviors>
+
+	<UserControl.Resources>
+		<wpf:CommandProxy x:Key="ToggleTagCommand" Command="{Binding ToggleTagCommand}"/>
+		<wpf:CommandProxy x:Key="EditIconCommand" Command="{Binding EditIconCommand}"/>
+		<wpf:CommandProxy x:Key="SelectNodeCommand" Command="{Binding SelectNodeCommand}"/>
+		<wpf:CommandProxy x:Key="AddChildGroupCommand" Command="{Binding AddChildGroupCommand}"/>
+		<wpf:CommandProxy x:Key="AddItemHereCommand" Command="{Binding AddItemHereCommand}"/>
+		<wpf:CommandProxy x:Key="DeleteGroupCommand" Command="{Binding DeleteGroupCommand}"/>
+	</UserControl.Resources>
+
+	<Grid Background="#F7F7F7">
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="*"/>
+			<RowDefinition Height="Auto"/>
+		</Grid.RowDefinitions>
+
+		<Border
+			Grid.Row="0"
+			Padding="12,10,12,12"
+			BorderBrush="#E1E1E1"
+			BorderThickness="0,0,0,1">
+			<StackPanel>
+				<DockPanel Margin="0,0,0,8" LastChildFill="False">
+					<TextBlock
+						DockPanel.Dock="Left"
+						FontSize="11"
+						FontWeight="SemiBold"
+						Foreground="#8A8A8A"
+						Text="筛选"/>
+					<Button
+						DockPanel.Dock="Right"
+						Command="{Binding ClearFiltersCommand}"
+						Content="清除"
+						FontSize="11"
+						FontWeight="SemiBold"
+						Foreground="#326CF3"
+						Style="{StaticResource HubButtonGhost}"
+						Visibility="{Binding Workspace.HasSidebarFilter, Converter={StaticResource Boolean2VisibilityConverter}}"/>
+				</DockPanel>
+				<Grid>
+					<TextBox
+						Height="32"
+						Padding="28,0,8,0"
+						Text="{Binding Workspace.Query, UpdateSourceTrigger=PropertyChanged}"
+						VerticalContentAlignment="Center"/>
+					<wpf:FontIcon
+						Margin="10,0,0,0"
+						HorizontalAlignment="Left"
+						VerticalAlignment="Center"
+						FontSize="13"
+						Foreground="#8A8A8A"
+						IsHitTestVisible="False"
+						Text="&#xE721;"/>
+				</Grid>
+				<TextBlock
+					Margin="2,8,0,6"
+					FontSize="11"
+					FontWeight="SemiBold"
+					Foreground="#8A8A8A"
+					Text="标签 · 多选为或"/>
+				<ItemsControl ItemsSource="{Binding Workspace.TagChips, Mode=OneWay}">
+					<ItemsControl.ItemsPanel>
+						<ItemsPanelTemplate>
+							<WrapPanel/>
+						</ItemsPanelTemplate>
+					</ItemsControl.ItemsPanel>
+					<ItemsControl.ItemTemplate>
+						<DataTemplate>
+							<Button
+								Margin="0,0,6,6"
+								Padding="8,3"
+								Command="{StaticResource ToggleTagCommand}"
+								CommandParameter="{Binding}"
+								Content="{Binding Tag, Mode=OneWay}"
+								FontSize="11">
+								<Button.Style>
+									<Style TargetType="Button">
+										<Setter Property="Background" Value="#F1F1F1"/>
+										<Setter Property="BorderThickness" Value="0"/>
+										<Setter Property="Foreground" Value="#5C5C5C"/>
+										<Style.Triggers>
+											<DataTrigger Binding="{Binding IsOn, Mode=OneWay}" Value="True">
+												<Setter Property="Background" Value="#E8EFFE"/>
+												<Setter Property="Foreground" Value="#1A3FA8"/>
+												<Setter Property="FontWeight" Value="SemiBold"/>
+											</DataTrigger>
+										</Style.Triggers>
+									</Style>
+								</Button.Style>
+							</Button>
+						</DataTemplate>
+					</ItemsControl.ItemTemplate>
+				</ItemsControl>
+			</StackPanel>
+		</Border>
+
+		<TreeView
+			Grid.Row="1"
+			Background="Transparent"
+			BorderThickness="0"
+			ItemsSource="{Binding Workspace.TreeRoots, Mode=OneWay}"
+			Padding="6,6,6,12"
+			ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+			wpf:TreeViewExtension.FixRightClickSelection="True"
+			wpf:TreeViewExtension.SelectionChangedCommand="{Binding SelectNodeCommand}">
+			<TreeView.ItemContainerStyle>
+				<Style TargetType="TreeViewItem">
+					<Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+					<Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+					<Setter Property="Padding" Value="0"/>
+					<Setter Property="ContextMenu">
+						<Setter.Value>
+							<ContextMenu>
+								<MenuItem Command="{StaticResource SelectNodeCommand}" CommandParameter="{Binding}" Header="查看"/>
+								<MenuItem Command="{StaticResource AddChildGroupCommand}" CommandParameter="{Binding}" Header="新建子分组"/>
+								<MenuItem Command="{StaticResource AddItemHereCommand}" CommandParameter="{Binding}" Header="添加条目"/>
+								<MenuItem Command="{StaticResource EditIconCommand}" CommandParameter="{Binding}" Header="设置图标"/>
+								<Separator/>
+								<MenuItem
+									Command="{StaticResource DeleteGroupCommand}"
+									CommandParameter="{Binding}"
+									Header="删除分组"
+									Visibility="{Binding IsAll, Converter={StaticResource Boolean2VisibilityReConverter}}"/>
+							</ContextMenu>
+						</Setter.Value>
+					</Setter>
+				</Style>
+			</TreeView.ItemContainerStyle>
+			<TreeView.ItemTemplate>
+				<HierarchicalDataTemplate ItemsSource="{Binding Children}">
+					<DockPanel LastChildFill="True" MinHeight="28">
+						<Button
+							Width="22"
+							Height="22"
+							Margin="0,0,6,0"
+							Command="{StaticResource EditIconCommand}"
+							CommandParameter="{Binding}"
+							DockPanel.Dock="Left"
+							Style="{StaticResource HubTreeButton}"
+							ToolTip="设置图标">
+							<wpf:FontIcon
+								FontSize="14"
+								Foreground="{Binding IconBrush, Mode=OneWay}"
+								Text="{Binding Glyph, Mode=OneWay}"/>
+						</Button>
+						<TextBlock
+							DockPanel.Dock="Right"
+							Margin="8,0,4,0"
+							VerticalAlignment="Center"
+							FontSize="11"
+							FontWeight="SemiBold"
+							Foreground="#8A8A8A"
+							Text="{Binding Count, Mode=OneWay}"/>
+						<TextBlock
+							VerticalAlignment="Center"
+							FontSize="13"
+							Text="{Binding Name, Mode=OneWay}"
+							TextTrimming="CharacterEllipsis">
+							<TextBlock.Style>
+								<Style TargetType="TextBlock">
+									<Style.Triggers>
+										<DataTrigger Binding="{Binding IsSelected, Mode=OneWay}" Value="True">
+											<Setter Property="FontWeight" Value="SemiBold"/>
+											<Setter Property="Foreground" Value="#1A3FA8"/>
+										</DataTrigger>
+									</Style.Triggers>
+								</Style>
+							</TextBlock.Style>
+						</TextBlock>
+					</DockPanel>
+				</HierarchicalDataTemplate>
+			</TreeView.ItemTemplate>
+		</TreeView>
+
+		<Border
+			Grid.Row="2"
+			Padding="8"
+			BorderBrush="#E1E1E1"
+			BorderThickness="0,1,0,0">
+			<StackPanel>
+				<TextBlock
+					Padding="10,4,10,8"
+					FontSize="11"
+					Foreground="#8A8A8A"
+					TextWrapping="Wrap"
+					Text="元数据只存在本机 LocalAppData，不会改动原目录。"/>
+				<Button
+					HorizontalContentAlignment="Left"
+					Command="{Binding OpenAboutCommand}"
+					Padding="10,8"
+					Style="{StaticResource HubButtonGhost}">
+					<StackPanel Orientation="Horizontal">
+						<wpf:FontIcon Margin="0,0,8,0" FontSize="14" Text="&#xE897;"/>
+						<TextBlock Text="说明"/>
+					</StackPanel>
+				</Button>
+			</StackPanel>
+		</Border>
+	</Grid>
+</UserControl>
