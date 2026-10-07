@@ -33,16 +33,10 @@
 			<Button
 				Width="{Binding CoverWidth, Mode=OneWay}"
 				Margin="0,0,14,14"
-				HorizontalContentAlignment="Stretch"
-				VerticalContentAlignment="Stretch"
 				Command="{StaticResource SelectItemCommand}"
-				CommandParameter="{Binding}"
-				Padding="0">
+				CommandParameter="{Binding}">
 				<Button.Style>
-					<Style TargetType="Button">
-						<Setter Property="Background" Value="#FFFFFF"/>
-						<Setter Property="BorderBrush" Value="Transparent"/>
-						<Setter Property="BorderThickness" Value="1"/>
+					<Style TargetType="Button" BasedOn="{StaticResource HubCardButton}">
 						<Style.Triggers>
 							<DataTrigger Binding="{Binding IsSelected, Mode=OneWay}" Value="True">
 								<Setter Property="BorderBrush" Value="#326CF3"/>
@@ -115,15 +109,10 @@
 		<DataTemplate x:Key="ItemListTemplate">
 			<Button
 				Margin="0,0,0,6"
-				HorizontalContentAlignment="Stretch"
 				Command="{StaticResource SelectItemCommand}"
-				CommandParameter="{Binding}"
-				Padding="8,6">
+				CommandParameter="{Binding}">
 				<Button.Style>
-					<Style TargetType="Button">
-						<Setter Property="Background" Value="#FFFFFF"/>
-						<Setter Property="BorderBrush" Value="#E1E1E1"/>
-						<Setter Property="BorderThickness" Value="1"/>
+					<Style TargetType="Button" BasedOn="{StaticResource HubListButton}">
 						<Style.Triggers>
 							<DataTrigger Binding="{Binding IsSelected, Mode=OneWay}" Value="True">
 								<Setter Property="BorderBrush" Value="#326CF3"/>
@@ -352,14 +341,8 @@
 						FontSize="16"
 						FontWeight="SemiBold"
 						Text="{Binding Workspace.EmptyTitle, Mode=OneWay}"/>
-					<TextBlock
-						Margin="0,6,0,16"
-						HorizontalAlignment="Center"
-						Foreground="#5C5C5C"
-						Text="{Binding Workspace.EmptyHint, Mode=OneWay}"
-						TextAlignment="Center"
-						TextWrapping="Wrap"/>
 					<Button
+						Margin="0,16,0,0"
 						HorizontalAlignment="Center"
 						Command="{Binding OpenAddItemCommand}"
 						Content="添加条目"

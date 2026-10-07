@@ -36,7 +36,7 @@ internal static class CollectionMutations
 			);
 			workspace.SelectedGroupId = created.Id;
 			await workspace.ReloadAsync();
-			workspace.ShowToast($"已创建分组「{created.Name}」");
+			workspace.ShowToast("已添加");
 			return created;
 		}
 		catch (Exception ex)
@@ -64,7 +64,7 @@ internal static class CollectionMutations
 			await workspace.ReloadAsync();
 			workspace.SelectedItem = FindVisible(workspace, created.Id);
 			workspace.IsEditing = true;
-			workspace.ShowToast("已写入本机库，原目录没有改动");
+			workspace.ShowToast("已添加");
 			return created;
 		}
 		catch (Exception ex)

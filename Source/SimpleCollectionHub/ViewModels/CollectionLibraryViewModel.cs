@@ -86,12 +86,6 @@ internal class CollectionLibraryViewModel(
 	public IDelegateCommand OpenAddItemCommand => field ??= new AsyncCommand(OpenAddItem);
 	private async Task OpenAddItem()
 	{
-		if (workspace.GroupPicks.IsEmpty())
-		{
-			workspace.ShowToast("请先新建分组");
-			return;
-		}
-
 		Guid? groupId = workspace.SelectedGroupId == Guid.Empty ? null : workspace.SelectedGroupId;
 		AddItemDialogParameter parameter = new(groupId);
 		if (!AddItemDialog.ShowOKCancel(this, parameter))

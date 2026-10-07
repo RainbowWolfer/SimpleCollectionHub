@@ -45,24 +45,13 @@
 			</Border>
 			<StackPanel Margin="10,0,0,0" VerticalAlignment="Center">
 				<TextBlock FontWeight="SemiBold" Text="{Binding TargetName, Mode=OneWay}"/>
-				<TextBlock
-					FontSize="11"
-					Foreground="#8a8a8a"
-					Text="项目自带 Segoe Fluent Icons，点选后确定写入本机库。"/>
 			</StackPanel>
 		</StackPanel>
 
 		<TextBox
 			Grid.Row="1"
 			Margin="0,12,0,8"
-			Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-			VerticalContentAlignment="Center">
-			<TextBox.Style>
-				<Style TargetType="TextBox">
-					<Setter Property="Tag" Value="搜索图标…"/>
-				</Style>
-			</TextBox.Style>
-		</TextBox>
+			Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"/>
 
 		<ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
 			<ItemsControl ItemsSource="{Binding Icons, Mode=OneWay}">
@@ -78,18 +67,15 @@
 							Height="44"
 							Margin="3"
 							Padding="0"
-							Background="Transparent"
-							BorderThickness="1"
 							Command="{StaticResource SelectIconCommand}"
 							CommandParameter="{Binding}"
 							ToolTip="{Binding Name, Mode=OneWay}">
 							<Button.Style>
-								<Style TargetType="Button">
-									<Setter Property="BorderBrush" Value="#e1e1e1"/>
+								<Style TargetType="Button" BasedOn="{StaticResource HubIconPickButton}">
 									<Style.Triggers>
 										<DataTrigger Binding="{Binding IsSelected, Mode=OneWay}" Value="True">
-											<Setter Property="BorderBrush" Value="#326cf3"/>
-											<Setter Property="Background" Value="#e8effe"/>
+											<Setter Property="BorderBrush" Value="#326CF3"/>
+											<Setter Property="Background" Value="#E8EFFE"/>
 										</DataTrigger>
 									</Style.Triggers>
 								</Style>
@@ -120,12 +106,10 @@
 							Command="{StaticResource SelectColorCommand}"
 							CommandParameter="{Binding}">
 							<Button.Style>
-								<Style TargetType="Button">
-									<Setter Property="BorderBrush" Value="Transparent"/>
-									<Setter Property="BorderThickness" Value="2"/>
+								<Style TargetType="Button" BasedOn="{StaticResource HubColorSwatch}">
 									<Style.Triggers>
 										<DataTrigger Binding="{Binding IsSelected, Mode=OneWay}" Value="True">
-											<Setter Property="BorderBrush" Value="#1b1b1b"/>
+											<Setter Property="BorderBrush" Value="#1B1B1B"/>
 										</DataTrigger>
 									</Style.Triggers>
 								</Style>

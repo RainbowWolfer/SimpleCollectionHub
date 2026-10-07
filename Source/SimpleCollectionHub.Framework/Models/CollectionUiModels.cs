@@ -216,4 +216,7 @@ public class GroupPickOption
 	public Guid GroupId => Id ?? Guid.Empty;
 
 	public string Label { get; init; } = string.Empty;
+
+	/// <summary>下拉框无 DisplayMemberPath 时回退显示名称。</summary>
+	public override string ToString() => Label;
 }

@@ -92,9 +92,10 @@
 				<Button
 					HorizontalAlignment="Right"
 					Command="{Binding CloseLightboxCommand}"
-					Content="✕"
 					Foreground="White"
-					Style="{StaticResource HubButtonGhost}"/>
+					Style="{StaticResource HubIconButton}">
+					<wpf:FontIcon FontSize="12" Foreground="White" Text="&#xE711;"/>
+				</Button>
 				<Image
 					Grid.Row="1"
 					Margin="0,12"

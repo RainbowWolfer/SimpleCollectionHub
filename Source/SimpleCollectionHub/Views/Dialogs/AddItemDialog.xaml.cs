@@ -103,21 +103,15 @@ internal class AddItemDialogViewModel(
 
 	protected override bool Validate(out string message)
 	{
-		if (Groups.IsEmpty())
-		{
-			message = "请先新建分组";
-			return false;
-		}
-
 		if (ItemPath.IsBlank())
 		{
-			message = "请选择已经存在的文件夹";
+			message = "请选择文件夹";
 			return false;
 		}
 
 		if (!pathProbe.Exists(ItemPath))
 		{
-			message = "路径不存在。本软件不会替你创建目录。";
+			message = "路径不存在";
 			return false;
 		}
 
@@ -127,7 +121,7 @@ internal class AddItemDialogViewModel(
 			return false;
 		}
 
-		if (SelectedGroup?.Id is not Guid groupId || groupId == Guid.Empty)
+		if (SelectedGroup is null)
 		{
 			message = "请选择分组";
 			return false;
@@ -141,7 +135,7 @@ internal class AddItemDialogViewModel(
 	{
 		Parameter.ResultName = ItemName.Trim();
 		Parameter.ResultPath = ItemPath.Trim();
-		Parameter.ResultGroupId = SelectedGroup.Id.Value;
+		Parameter.ResultGroupId = SelectedGroup.GroupId;
 		return true;
 	}
 

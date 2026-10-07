@@ -18,12 +18,6 @@
 	mc:Ignorable="d">
 
 	<StackPanel Width="420">
-		<TextBlock
-			Margin="0,0,0,12"
-			Foreground="#5c5c5c"
-			TextWrapping="Wrap"
-			Text="选择一个已经存在的文件夹。软件只记下路径，不会在里面新建或修改任何文件。"/>
-
 		<TextBlock Margin="0,0,0,4" FontWeight="SemiBold" Text="已有路径"/>
 		<DockPanel Margin="0,0,0,12" LastChildFill="True">
 			<Button
@@ -50,7 +44,7 @@
 			Text="{Binding ItemName, UpdateSourceTrigger=PropertyChanged}"
 			VerticalContentAlignment="Center"/>
 
-		<TextBlock Margin="0,0,0,4" FontWeight="SemiBold" Text="放到分组"/>
+		<TextBlock Margin="0,0,0,4" FontWeight="SemiBold" Text="分组"/>
 		<ComboBox
 			DisplayMemberPath="Label"
 			ItemsSource="{Binding Groups, Mode=OneWay}"

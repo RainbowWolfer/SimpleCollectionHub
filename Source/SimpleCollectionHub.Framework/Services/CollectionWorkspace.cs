@@ -456,7 +456,7 @@ internal class CollectionWorkspace(
 
 		bool isAll = SelectedGroupId == Guid.Empty;
 		List<CollectionGroup> kids = ChildrenOf(isAll ? null : SelectedGroupId);
-		bool useSections = ViewMode == LibraryViewMode.Cards && (isAll || kids.Count > 0);
+		bool useSections = ViewMode == LibraryViewMode.Cards && kids.Count > 0;
 
 		if (ViewMode == LibraryViewMode.List || !useSections)
 		{
@@ -475,6 +475,12 @@ internal class CollectionWorkspace(
 
 		if (isAll)
 		{
+			List<ItemCardModel> ungrouped = [.. cards.Where(c => c.GroupId == Guid.Empty)];
+			if (ungrouped.IsNotEmpty())
+			{
+				AddSection("未分组", Guid.Empty, ungrouped);
+			}
+
 			foreach (CollectionGroup root in ChildrenOf(null))
 			{
 				List<CollectionGroup> rootKids = ChildrenOf(root.Id);
@@ -750,6 +756,11 @@ internal class CollectionWorkspace(
 	private void RebuildGroupPicks()
 	{
 		GroupPicks.Clear();
+		GroupPicks.Add(new GroupPickOption
+		{
+			Id = null,
+			Label = "全部收藏",
+		});
 		WalkPicks(null, "");
 	}
 
@@ -952,7 +963,7 @@ internal class CollectionWorkspace(
 			ImageCount = fields.Where(f => f.Type == FieldTypes.Images).Sum(f => f.Images?.Count ?? 0),
 			Cover = LoadCover(cover),
 			PlaceholderTitle = item.Name,
-			GroupPath = string.Join(" / ", Ancestors(item.GroupId).Select(g => g.Name)),
+			GroupPath = group is null ? "全部收藏" : string.Join(" / ", Ancestors(item.GroupId).Select(g => g.Name)),
 			IsSelected = SelectedItem?.Id == item.Id,
 		};
 		foreach (string tag in (item.Tags ?? []).Take(3))
@@ -998,12 +1009,12 @@ internal class CollectionWorkspace(
 		if (!filtering && _items.Count == 0)
 		{
 			EmptyTitle = "还没有条目";
-			EmptyHint = "绑定一个已经存在的文件夹。封面和备注只写进本机库，不会改原目录。";
+			EmptyHint = string.Empty;
 			return;
 		}
 
 		EmptyTitle = "没有符合条件的条目";
-		EmptyHint = "试试清除筛选，或换一个分组。";
+		EmptyHint = string.Empty;
 	}
 
 	private void RebuildCrumbs()

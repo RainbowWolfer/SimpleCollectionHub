@@ -67,12 +67,6 @@ internal class CollectionDetailViewModel(
 			return;
 		}
 
-		if (workspace.DetailGroupId == Guid.Empty)
-		{
-			MessageBoxService.ShowError("请选择分组");
-			return;
-		}
-
 		try
 		{
 			CollectionItem item = workspace.FindItem(card.Id);
@@ -123,7 +117,7 @@ internal class CollectionDetailViewModel(
 			await libraryService.SaveFieldsAsync(item.Id, fields);
 			workspace.IsEditing = false;
 			await workspace.ReloadAsync();
-			workspace.ShowToast("已保存到本机库");
+			workspace.ShowToast("已保存");
 		}
 		catch (Exception ex)
 		{
@@ -143,7 +137,7 @@ internal class CollectionDetailViewModel(
 
 		if (!path.ShowInExplorerWithMessage())
 		{
-			workspace.ShowToast("路径不存在，库记录仍保留");
+			workspace.ShowToast("路径不存在");
 		}
 	}
 
@@ -156,7 +150,7 @@ internal class CollectionDetailViewModel(
 			return;
 		}
 
-		if (!MessageBoxService.ShowOkCancelQuestion($"从库中移除「{card.Name}」？\n原目录里的文件不会被删除。"))
+		if (!MessageBoxService.ShowOkCancelQuestion($"从库中移除「{card.Name}」？"))
 		{
 			return;
 		}
@@ -167,7 +161,7 @@ internal class CollectionDetailViewModel(
 			workspace.SelectedItem = null;
 			workspace.IsEditing = false;
 			await workspace.ReloadAsync();
-			workspace.ShowToast("已从库中移除，原目录未改动");
+			workspace.ShowToast("已从库中移除");
 		}
 		catch (Exception ex)
 		{

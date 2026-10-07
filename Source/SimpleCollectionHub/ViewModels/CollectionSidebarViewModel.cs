@@ -195,12 +195,6 @@ internal class CollectionSidebarViewModel(
 
 	internal async Task ShowAddItem(Guid? groupId)
 	{
-		if (workspace.GroupPicks.IsEmpty())
-		{
-			workspace.ShowToast("请先新建分组");
-			return;
-		}
-
 		AddItemDialogParameter parameter = new(groupId);
 		if (!AddItemDialog.ShowOKCancel(this, parameter))
 		{

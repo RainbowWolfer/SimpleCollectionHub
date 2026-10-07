@@ -10,7 +10,6 @@
 			<ResourceDictionary.MergedDictionaries>
 
 				<ResourceDictionary Source="pack://application:,,,/SimpleCollectionHub.Framework;component/Resources/FrameworkTheme.xaml"/>
-				<ResourceDictionary Source="Resources/CollectionTheme.xaml"/>
 
 			</ResourceDictionary.MergedDictionaries>
 		</ResourceDictionary>

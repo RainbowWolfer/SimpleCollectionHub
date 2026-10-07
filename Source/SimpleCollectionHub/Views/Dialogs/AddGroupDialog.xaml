@@ -18,12 +18,6 @@
 	mc:Ignorable="d">
 
 	<StackPanel Width="400">
-		<TextBlock
-			Margin="0,0,0,12"
-			Foreground="#5c5c5c"
-			TextWrapping="Wrap"
-			Text="分组只存在本机库里，不是磁盘上的文件夹。默认图标是文件夹，颜色继承父级。"/>
-
 		<TextBlock Margin="0,0,0,4" FontWeight="SemiBold" Text="名称"/>
 		<TextBox
 			Margin="0,0,0,12"

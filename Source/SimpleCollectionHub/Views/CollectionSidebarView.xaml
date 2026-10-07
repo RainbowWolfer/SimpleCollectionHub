@@ -70,8 +70,7 @@
 					<TextBox
 						Height="32"
 						Padding="28,0,8,0"
-						Text="{Binding Workspace.Query, UpdateSourceTrigger=PropertyChanged}"
-						VerticalContentAlignment="Center"/>
+						Text="{Binding Workspace.Query, UpdateSourceTrigger=PropertyChanged}"/>
 					<wpf:FontIcon
 						Margin="10,0,0,0"
 						HorizontalAlignment="Left"
@@ -80,13 +79,22 @@
 						Foreground="#8A8A8A"
 						IsHitTestVisible="False"
 						Text="&#xE721;"/>
+					<TextBlock
+						Margin="30,0,0,0"
+						HorizontalAlignment="Left"
+						VerticalAlignment="Center"
+						FontSize="12.5"
+						Foreground="#8A8A8A"
+						IsHitTestVisible="False"
+						Text="搜索"
+						Visibility="{Binding Workspace.Query, Converter={StaticResource String2VisibilityReConverter}}"/>
 				</Grid>
 				<TextBlock
 					Margin="2,8,0,6"
 					FontSize="11"
 					FontWeight="SemiBold"
 					Foreground="#8A8A8A"
-					Text="标签 · 多选为或"/>
+					Text="标签"/>
 				<ItemsControl ItemsSource="{Binding Workspace.TagChips, Mode=OneWay}">
 					<ItemsControl.ItemsPanel>
 						<ItemsPanelTemplate>
@@ -97,19 +105,15 @@
 						<DataTemplate>
 							<Button
 								Margin="0,0,6,6"
-								Padding="8,3"
 								Command="{StaticResource ToggleTagCommand}"
 								CommandParameter="{Binding}"
-								Content="{Binding Tag, Mode=OneWay}"
-								FontSize="11">
+								Content="{Binding Tag, Mode=OneWay}">
 								<Button.Style>
-									<Style TargetType="Button">
-										<Setter Property="Background" Value="#F1F1F1"/>
-										<Setter Property="BorderThickness" Value="0"/>
-										<Setter Property="Foreground" Value="#5C5C5C"/>
+									<Style TargetType="Button" BasedOn="{StaticResource HubTagChip}">
 										<Style.Triggers>
 											<DataTrigger Binding="{Binding IsOn, Mode=OneWay}" Value="True">
 												<Setter Property="Background" Value="#E8EFFE"/>
+												<Setter Property="BorderBrush" Value="#326CF3"/>
 												<Setter Property="Foreground" Value="#1A3FA8"/>
 												<Setter Property="FontWeight" Value="SemiBold"/>
 											</DataTrigger>
@@ -133,10 +137,8 @@
 			wpf:TreeViewExtension.FixRightClickSelection="True"
 			wpf:TreeViewExtension.SelectionChangedCommand="{Binding SelectNodeCommand}">
 			<TreeView.ItemContainerStyle>
-				<Style TargetType="TreeViewItem">
+				<Style TargetType="TreeViewItem" BasedOn="{StaticResource HubTreeViewItem}">
 					<Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-					<Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-					<Setter Property="Padding" Value="0"/>
 					<Setter Property="ContextMenu">
 						<Setter.Value>
 							<ContextMenu>
@@ -206,24 +208,16 @@
 			Padding="8"
 			BorderBrush="#E1E1E1"
 			BorderThickness="0,1,0,0">
-			<StackPanel>
-				<TextBlock
-					Padding="10,4,10,8"
-					FontSize="11"
-					Foreground="#8A8A8A"
-					TextWrapping="Wrap"
-					Text="元数据只存在本机 LocalAppData，不会改动原目录。"/>
-				<Button
-					HorizontalContentAlignment="Left"
-					Command="{Binding OpenAboutCommand}"
-					Padding="10,8"
-					Style="{StaticResource HubButtonGhost}">
-					<StackPanel Orientation="Horizontal">
-						<wpf:FontIcon Margin="0,0,8,0" FontSize="14" Text="&#xE897;"/>
-						<TextBlock Text="说明"/>
-					</StackPanel>
-				</Button>
-			</StackPanel>
+			<Button
+				HorizontalContentAlignment="Left"
+				Command="{Binding OpenAboutCommand}"
+				Padding="10,8"
+				Style="{StaticResource HubButtonGhost}">
+				<StackPanel Orientation="Horizontal">
+					<wpf:FontIcon Margin="0,0,8,0" FontSize="14" Text="&#xE897;"/>
+					<TextBlock Text="说明"/>
+				</StackPanel>
+			</Button>
 		</Border>
 	</Grid>
 </UserControl>

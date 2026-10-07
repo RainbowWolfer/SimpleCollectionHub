@@ -51,17 +51,12 @@ internal class AddGroupDialogViewModel(ICollectionWorkspace workspace) : DialogV
 		DialogTitle = "新建分组";
 		ConfirmDialogCommand.Content = "确定";
 		CancelDialogCommand.Content = "取消";
-		Parents.Add(new GroupPickOption
-		{
-			Id = null,
-			Label = "全部收藏（顶级）",
-		});
 		foreach (GroupPickOption option in workspace.GroupPicks)
 		{
 			Parents.Add(option);
 		}
 
-		SelectedParent = Parents[0];
+		SelectedParent = Parents.Count > 0 ? Parents[0] : null;
 		Guid? preferred = Parameter.ParentId;
 		if (preferred is Guid id)
 		{
