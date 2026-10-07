@@ -264,14 +264,7 @@ internal class CollectionDetailViewModel(
 			try
 			{
 				string source = file.GetFullName();
-				StoredImage stored = mediaStore.ImportFile(source, file.Name);
-				field.Images.Add(new ImageEditorModel
-				{
-					Id = stored.Id,
-					RelativePath = stored.RelativePath,
-					Caption = stored.Caption,
-					Preview = mediaStore.LoadPreview(stored.RelativePath),
-				});
+				AddStoredImage(field, mediaStore.ImportFile(source, file.Name));
 			}
 			catch (Exception ex)
 			{
@@ -279,6 +272,38 @@ internal class CollectionDetailViewModel(
 				MessageBoxService.ShowError($"导入失败：{ex.Message}");
 			}
 		}
+	}
+
+	public IDelegateCommand PasteImagesCommand => field ??= new DelegateCommand<FieldEditorModel>(PasteImages);
+	private void PasteImages(FieldEditorModel field)
+	{
+		if (field is null || !workspace.IsEditing)
+		{
+			return;
+		}
+
+		if (!CollectionImagePaste.TryPaste(workspace, mediaStore, field, out string message))
+		{
+			workspace.ShowToast("剪贴板里没有图片");
+			return;
+		}
+
+		if (message.IsNotBlank())
+		{
+			workspace.ShowToast(message);
+		}
+	}
+
+	/// <summary>把已入库的媒体挂到当前字段，预览从 MediaFolder 读副本。</summary>
+	private void AddStoredImage(FieldEditorModel field, StoredImage stored)
+	{
+		field.Images.Add(new ImageEditorModel
+		{
+			Id = stored.Id,
+			RelativePath = stored.RelativePath,
+			Caption = stored.Caption,
+			Preview = mediaStore.LoadPreview(stored.RelativePath),
+		});
 	}
 
 	public IDelegateCommand RemoveImageCommand => field ??= new DelegateCommand<ImageEditorModel>(RemoveImage);

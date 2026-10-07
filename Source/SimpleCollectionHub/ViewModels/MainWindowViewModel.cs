@@ -1,15 +1,18 @@
 ﻿using DevExpress.Mvvm;
+using RW.Common.Helpers;
 using SimpleCollectionHub.Framework.Services;
 using SimpleCollectionHub.Framework.ViewModels;
 using SimpleCollectionHub.Framework.ViewModelServices;
 using System.ComponentModel;
 using System.Threading.Tasks;
+using System.Windows.Input;
 
 namespace SimpleCollectionHub.ViewModels;
 
 /// <summary>主窗口壳：加载收藏库、说明对话框、退出确认。</summary>
 internal class MainWindowViewModel(
-	ICollectionWorkspace workspace
+	ICollectionWorkspace workspace,
+	IMediaStore mediaStore
 ) : ViewModelBaseEx
 {
 	public ICollectionWorkspace Workspace => workspace;
@@ -43,5 +46,36 @@ internal class MainWindowViewModel(
 	private async Task Refresh()
 	{
 		await workspace.ReloadAsync();
+	}
+
+	/// <summary>窗口隧道阶段拦截 Ctrl+V，这样输入框还没把截图当成文字处理。</summary>
+	public IDelegateCommand PreviewKeyDownCommand => field ??= new DelegateCommand<KeyEventArgs>(OnPreviewKeyDown);
+	private void OnPreviewKeyDown(KeyEventArgs e)
+	{
+		if (e is null || e.Handled)
+		{
+			return;
+		}
+
+		if (e.Key != Key.V || Keyboard.Modifiers != ModifierKeys.Control)
+		{
+			return;
+		}
+
+		if (CollectionImagePaste.ShouldLeaveTextPaste())
+		{
+			return;
+		}
+
+		if (!CollectionImagePaste.TryPaste(workspace, mediaStore, null, out string message))
+		{
+			return;
+		}
+
+		e.Handled = true;
+		if (message.IsNotBlank())
+		{
+			workspace.ShowToast(message);
+		}
 	}
 }

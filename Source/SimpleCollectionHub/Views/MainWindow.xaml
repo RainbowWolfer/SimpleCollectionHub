@@ -32,6 +32,10 @@
 		<base:TypedUIObjectService Name="WindowService"/>
 		<base:DispatcherServiceEx/>
 		<f:MessageBoxServiceEx/>
+		<dxmvvm:EventToCommand
+			Command="{Binding PreviewKeyDownCommand}"
+			EventName="PreviewKeyDown"
+			PassEventArgsToCommand="True"/>
 	</dxmvvm:Interaction.Behaviors>
 
 	<Grid Background="#F3F3F3">

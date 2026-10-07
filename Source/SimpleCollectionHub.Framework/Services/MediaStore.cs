@@ -2,7 +2,9 @@ using RW.Base.WPF.DependencyInjections;
 using RW.Common.Helpers;
 using SimpleCollectionHub.Framework.Configs;
 using SimpleCollectionHub.Framework.Database;
+using SimpleCollectionHub.Framework.Helpers;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Windows.Media;
@@ -15,6 +17,12 @@ public interface IMediaStore
 {
 	/// <summary>复制一张图到 MediaFolder，返回库内相对路径。</summary>
 	StoredImage ImportFile(string sourcePath, string caption);
+
+	/// <summary>把位图存成 PNG 到 MediaFolder。截图粘贴走这里。</summary>
+	StoredImage ImportBitmap(BitmapSource source, string caption);
+
+	/// <summary>从剪贴板导入图片（PNG / 位图 / 复制的图片文件）。没有图片时返回空列表。</summary>
+	IReadOnlyList<StoredImage> ImportFromClipboard();
 
 	/// <summary>把相对路径拼成绝对路径。不存在时返回 null。</summary>
 	string? GetAbsolutePath(string relativePath);
@@ -49,6 +57,71 @@ internal class MediaStore(AppFolderConfig folderConfig) : IMediaStore, ISingleto
 			RelativePath = relative,
 			Caption = caption.NotBlankCheck() ?? Path.GetFileName(sourcePath),
 		};
+	}
+
+	public StoredImage ImportBitmap(BitmapSource source, string caption)
+	{
+		if (source is null)
+		{
+			throw new ArgumentNullException(nameof(source));
+		}
+
+		Directory.CreateDirectory(folderConfig.MediaFolder);
+		string relative = $"{Guid.NewGuid():N}.png";
+		string dest = Path.Combine(folderConfig.MediaFolder, relative);
+		BitmapSource pixels = source;
+		if (source.Format != PixelFormats.Bgra32 && source.Format != PixelFormats.Pbgra32)
+		{
+			pixels = new FormatConvertedBitmap(source, PixelFormats.Bgra32, null, 0);
+		}
+
+		if (pixels.CanFreeze && !pixels.IsFrozen)
+		{
+			pixels.Freeze();
+		}
+
+		PngBitmapEncoder encoder = new();
+		encoder.Frames.Add(BitmapFrame.Create(pixels));
+		using FileStream file = File.Create(dest);
+		encoder.Save(file);
+		return new StoredImage
+		{
+			Id = Guid.NewGuid(),
+			RelativePath = relative,
+			Caption = caption.NotBlankCheck() ?? "截图",
+		};
+	}
+
+	public IReadOnlyList<StoredImage> ImportFromClipboard()
+	{
+		List<StoredImage> imported = [];
+		if (!ClipboardImageHelper.TryRead(out List<ClipboardImagePayload> payloads))
+		{
+			return imported;
+		}
+
+		foreach (ClipboardImagePayload payload in payloads)
+		{
+			try
+			{
+				if (payload.FilePath.IsNotBlank())
+				{
+					imported.Add(ImportFile(payload.FilePath, payload.Caption));
+					continue;
+				}
+
+				if (payload.Bitmap is not null)
+				{
+					imported.Add(ImportBitmap(payload.Bitmap, payload.Caption));
+				}
+			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine(ex);
+			}
+		}
+
+		return imported;
 	}
 
 	public string? GetAbsolutePath(string relativePath)

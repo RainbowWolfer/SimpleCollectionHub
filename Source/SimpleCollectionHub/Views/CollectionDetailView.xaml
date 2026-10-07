@@ -32,6 +32,7 @@
 		<wpf:CommandProxy x:Key="RemoveTagCommand" Command="{Binding RemoveTagCommand}"/>
 		<wpf:CommandProxy x:Key="RemoveFieldCommand" Command="{Binding RemoveFieldCommand}"/>
 		<wpf:CommandProxy x:Key="ImportImagesCommand" Command="{Binding ImportImagesCommand}"/>
+		<wpf:CommandProxy x:Key="PasteImagesCommand" Command="{Binding PasteImagesCommand}"/>
 		<wpf:CommandProxy x:Key="RemoveImageCommand" Command="{Binding RemoveImageCommand}"/>
 		<wpf:CommandProxy x:Key="OpenLightboxCommand" Command="{Binding OpenLightboxCommand}"/>
 		<wpf:CommandProxy x:Key="AddLinkCommand" Command="{Binding AddLinkCommand}"/>
@@ -211,13 +212,22 @@
 												</DataTemplate>
 											</ItemsControl.ItemTemplate>
 										</ItemsControl>
-										<Button
+										<StackPanel
 											Margin="0,4,0,0"
-											Command="{StaticResource ImportImagesCommand}"
-											CommandParameter="{Binding}"
-											Content="导入图片"
-											Style="{StaticResource HubButton}"
-											Visibility="{Binding Data.Workspace.IsEditing, Converter={StaticResource Boolean2VisibilityConverter}, Source={StaticResource ViewModel}}"/>
+											Orientation="Horizontal"
+											Visibility="{Binding Data.Workspace.IsEditing, Converter={StaticResource Boolean2VisibilityConverter}, Source={StaticResource ViewModel}}">
+											<Button
+												Margin="0,0,8,0"
+												Command="{StaticResource ImportImagesCommand}"
+												CommandParameter="{Binding}"
+												Content="导入图片"
+												Style="{StaticResource HubButton}"/>
+											<Button
+												Command="{StaticResource PasteImagesCommand}"
+												CommandParameter="{Binding}"
+												Content="粘贴"
+												Style="{StaticResource HubButton}"/>
+										</StackPanel>
 									</StackPanel>
 
 									<StackPanel Visibility="{Binding IsLinks, Converter={StaticResource Boolean2VisibilityConverter}}">
