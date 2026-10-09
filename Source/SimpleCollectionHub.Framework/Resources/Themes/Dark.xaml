@@ -1,0 +1,22 @@
+﻿<ResourceDictionary
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+	<!-- 深色下的状态色块，和 Light.xaml 同一组键，切换时整本字典替换。 -->
+	<Color x:Key="HubOkBackgroundColor">#14301C</Color>
+	<Color x:Key="HubOkForegroundColor">#7DCEA0</Color>
+	<Color x:Key="HubWarnBackgroundColor">#3A3010</Color>
+	<Color x:Key="HubWarnForegroundColor">#F5D76E</Color>
+	<Color x:Key="HubChipBackgroundColor">#1A2744</Color>
+	<Color x:Key="HubChipForegroundColor">#8EB4FF</Color>
+	<Color x:Key="HubCoverColor">#2A3344</Color>
+
+	<SolidColorBrush x:Key="HubOkBackground" Color="{DynamicResource HubOkBackgroundColor}"/>
+	<SolidColorBrush x:Key="HubOkForeground" Color="{DynamicResource HubOkForegroundColor}"/>
+	<SolidColorBrush x:Key="HubWarnBackground" Color="{DynamicResource HubWarnBackgroundColor}"/>
+	<SolidColorBrush x:Key="HubWarnForeground" Color="{DynamicResource HubWarnForegroundColor}"/>
+	<SolidColorBrush x:Key="HubChipBackground" Color="{DynamicResource HubChipBackgroundColor}"/>
+	<SolidColorBrush x:Key="HubChipForeground" Color="{DynamicResource HubChipForegroundColor}"/>
+	<SolidColorBrush x:Key="HubCoverBrush" Color="{DynamicResource HubCoverColor}"/>
+
+</ResourceDictionary>

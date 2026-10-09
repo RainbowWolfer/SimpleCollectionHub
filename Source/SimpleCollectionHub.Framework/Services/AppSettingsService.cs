@@ -30,4 +30,7 @@ public class AppSettingsModel
 
 	/// <summary>虚拟根「全部收藏」的图标颜色。</summary>
 	public string AllIconColor { get; set; } = "#326cf3";
+
+	/// <summary>界面是否使用深色主题。默认浅色，和原先的界面一致。</summary>
+	public bool IsDarkTheme { get; set; }
 }

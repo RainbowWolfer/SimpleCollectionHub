@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SimpleCollectionHub.Framework.Services;
+using System;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
@@ -65,6 +66,7 @@ public class WindowBase : Window {
 			ResizeMode = MyResizeMode.Value;
 		}
 
+		AppTheme.ApplyTitleBar(this);
 	}
 
 }

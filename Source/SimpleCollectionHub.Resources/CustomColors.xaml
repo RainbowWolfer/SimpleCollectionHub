@@ -2,23 +2,9 @@
 	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-	<Color x:Key="BorderColoer">#E1E1E1</Color>
-
-	<SolidColorBrush x:Key="BorderBrush" Color="{DynamicResource BorderColoer}"/>
-
-
-	<Color x:Key="DangerColor">#db3340</Color>
-	<Color x:Key="WarningColor">#e9af20</Color>
-	<Color x:Key="InfoColor">#00bcd4</Color>
-	<Color x:Key="SuccessColor">#2db84d</Color>
-	<Color x:Key="VioletColor">#7b1fa2</Color>
-	<Color x:Key="PrimaryColor">#326cf3</Color>
-
-	<SolidColorBrush x:Key="DangerBrush" Color="{DynamicResource DangerColor}"/>
-	<SolidColorBrush x:Key="WarningBrush" Color="{DynamicResource WarningColor}"/>
-	<SolidColorBrush x:Key="InfoBrush" Color="{DynamicResource InfoColor}"/>
-	<SolidColorBrush x:Key="SuccessBrush" Color="{DynamicResource SuccessColor}"/>
-	<SolidColorBrush x:Key="VioletBrush" Color="{DynamicResource VioletColor}"/>
-	<SolidColorBrush x:Key="PrimaryBrush" Color="{DynamicResource PrimaryColor}"/>
+	<!--
+		PrimaryBrush、DangerBrush、BorderBrush 这些键属于 HandyControl 的主题字典。
+		在这里再定义同名画刷会盖住主题，深色切换就失效了。补充色放在 Framework 的 Themes/Light.xaml 和 Dark.xaml。
+	-->
 
 </ResourceDictionary>

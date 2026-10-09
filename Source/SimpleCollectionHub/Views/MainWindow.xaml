@@ -18,6 +18,9 @@
 	Height="860"
 	MinWidth="960"
 	MinHeight="640"
+	FontFamily="Segoe UI, Microsoft YaHei UI"
+	FontSize="13"
+	Foreground="{DynamicResource PrimaryTextBrush}"
 	WindowStartupLocation="CenterScreen"
 	d:DataContext="{d:DesignInstance Type=vms:MainWindowViewModel}"
 	d:DesignHeight="860"
@@ -38,7 +41,7 @@
 			PassEventArgsToCommand="True"/>
 	</dxmvvm:Interaction.Behaviors>
 
-	<Grid Background="#F3F3F3">
+	<Grid Background="{DynamicResource BackgroundBrush}">
 		<Grid.ColumnDefinitions>
 			<ColumnDefinition Width="276"/>
 			<ColumnDefinition Width="*"/>
@@ -54,18 +57,19 @@
 
 		<Border
 			Grid.ColumnSpan="3"
-			Background="#88FFFFFF"
+			Background="#66000000"
 			Visibility="{Binding Workspace.LoadingStatus.IsLoadingActive, Converter={StaticResource Boolean2VisibilityConverter}}">
 			<StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
 				<TextBlock
 					HorizontalAlignment="Center"
 					FontSize="14"
+					Foreground="White"
 					Text="{Binding Workspace.LoadingStatus.Message, Mode=OneWay}"
 					Visibility="{Binding Workspace.LoadingStatus.IsLoading, Converter={StaticResource Boolean2VisibilityConverter}}"/>
 				<TextBlock
 					MaxWidth="420"
 					HorizontalAlignment="Center"
-					Foreground="#DB3340"
+					Foreground="{DynamicResource DangerBrush}"
 					Text="{Binding Workspace.LoadingStatus.ErrorMessage, Mode=OneWay}"
 					TextAlignment="Center"
 					TextWrapping="Wrap"
@@ -74,7 +78,7 @@
 					Margin="0,12,0,0"
 					Command="{Binding RefreshCommand}"
 					Content="重试"
-					Style="{StaticResource HubButton}"
+					Style="{StaticResource ButtonDefault}"
 					Visibility="{Binding Workspace.LoadingStatus.HasError, Converter={StaticResource Boolean2VisibilityConverter}}"/>
 			</StackPanel>
 		</Border>
@@ -119,10 +123,12 @@
 			Padding="14,10"
 			HorizontalAlignment="Center"
 			VerticalAlignment="Bottom"
-			Background="#1B1B1B"
+			Background="{DynamicResource RegionBrush}"
+			BorderBrush="{DynamicResource BorderBrush}"
+			BorderThickness="1"
 			CornerRadius="8"
 			Visibility="{Binding Workspace.IsToastVisible, Converter={StaticResource Boolean2VisibilityConverter}}">
-			<TextBlock Foreground="White" Text="{Binding Workspace.ToastMessage, Mode=OneWay}"/>
+			<TextBlock Foreground="{DynamicResource PrimaryTextBrush}" Text="{Binding Workspace.ToastMessage, Mode=OneWay}"/>
 		</Border>
 	</Grid>
 </Window>

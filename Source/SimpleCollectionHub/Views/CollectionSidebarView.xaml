@@ -36,7 +36,7 @@
 		<wpf:CommandProxy x:Key="DeleteGroupCommand" Command="{Binding DeleteGroupCommand}"/>
 	</UserControl.Resources>
 
-	<Grid Background="#F7F7F7">
+	<Grid Background="{DynamicResource SecondaryRegionBrush}">
 		<Grid.RowDefinitions>
 			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="*"/>
@@ -46,7 +46,7 @@
 		<Border
 			Grid.Row="0"
 			Padding="12,10,12,12"
-			BorderBrush="#E1E1E1"
+			BorderBrush="{DynamicResource BorderBrush}"
 			BorderThickness="0,0,0,1">
 			<StackPanel>
 				<DockPanel Margin="0,0,0,8" LastChildFill="False">
@@ -54,7 +54,7 @@
 						DockPanel.Dock="Left"
 						FontSize="11"
 						FontWeight="SemiBold"
-						Foreground="#8A8A8A"
+						Foreground="{DynamicResource ThirdlyTextBrush}"
 						Text="筛选"/>
 					<Button
 						DockPanel.Dock="Right"
@@ -62,8 +62,8 @@
 						Content="清除"
 						FontSize="11"
 						FontWeight="SemiBold"
-						Foreground="#326CF3"
-						Style="{StaticResource HubButtonGhost}"
+						Foreground="{DynamicResource PrimaryBrush}"
+						Style="{StaticResource HubGhostButton}"
 						Visibility="{Binding Workspace.HasSidebarFilter, Converter={StaticResource Boolean2VisibilityConverter}}"/>
 				</DockPanel>
 				<Grid>
@@ -76,7 +76,7 @@
 						HorizontalAlignment="Left"
 						VerticalAlignment="Center"
 						FontSize="13"
-						Foreground="#8A8A8A"
+						Foreground="{DynamicResource ThirdlyTextBrush}"
 						IsHitTestVisible="False"
 						Text="&#xE721;"/>
 					<TextBlock
@@ -84,7 +84,7 @@
 						HorizontalAlignment="Left"
 						VerticalAlignment="Center"
 						FontSize="12.5"
-						Foreground="#8A8A8A"
+						Foreground="{DynamicResource ThirdlyTextBrush}"
 						IsHitTestVisible="False"
 						Text="搜索"
 						Visibility="{Binding Workspace.Query, Converter={StaticResource String2VisibilityReConverter}}"/>
@@ -93,7 +93,7 @@
 					Margin="2,8,0,6"
 					FontSize="11"
 					FontWeight="SemiBold"
-					Foreground="#8A8A8A"
+					Foreground="{DynamicResource ThirdlyTextBrush}"
 					Text="标签"/>
 				<ItemsControl ItemsSource="{Binding Workspace.TagChips, Mode=OneWay}">
 					<ItemsControl.ItemsPanel>
@@ -112,9 +112,9 @@
 									<Style TargetType="Button" BasedOn="{StaticResource HubTagChip}">
 										<Style.Triggers>
 											<DataTrigger Binding="{Binding IsOn, Mode=OneWay}" Value="True">
-												<Setter Property="Background" Value="#E8EFFE"/>
-												<Setter Property="BorderBrush" Value="#326CF3"/>
-												<Setter Property="Foreground" Value="#1A3FA8"/>
+												<Setter Property="Background" Value="{DynamicResource PrimaryBrush}"/>
+												<Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
+												<Setter Property="Foreground" Value="{DynamicResource TextIconBrush}"/>
 												<Setter Property="FontWeight" Value="SemiBold"/>
 											</DataTrigger>
 										</Style.Triggers>
@@ -127,7 +127,7 @@
 			</StackPanel>
 		</Border>
 
-		<TreeView
+			<TreeView
 			Grid.Row="1"
 			Background="Transparent"
 			BorderThickness="0"
@@ -137,7 +137,7 @@
 			wpf:TreeViewExtension.FixRightClickSelection="True"
 			wpf:TreeViewExtension.SelectionChangedCommand="{Binding SelectNodeCommand}">
 			<TreeView.ItemContainerStyle>
-				<Style TargetType="TreeViewItem" BasedOn="{StaticResource HubTreeViewItem}">
+				<Style TargetType="TreeViewItem" BasedOn="{StaticResource TreeViewItemBaseStyle}">
 					<Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
 					<Setter Property="ContextMenu">
 						<Setter.Value>
@@ -180,7 +180,7 @@
 							VerticalAlignment="Center"
 							FontSize="11"
 							FontWeight="SemiBold"
-							Foreground="#8A8A8A"
+							Foreground="{DynamicResource ThirdlyTextBrush}"
 							Text="{Binding Count, Mode=OneWay}"/>
 						<TextBlock
 							VerticalAlignment="Center"
@@ -192,7 +192,6 @@
 									<Style.Triggers>
 										<DataTrigger Binding="{Binding IsSelected, Mode=OneWay}" Value="True">
 											<Setter Property="FontWeight" Value="SemiBold"/>
-											<Setter Property="Foreground" Value="#1A3FA8"/>
 										</DataTrigger>
 									</Style.Triggers>
 								</Style>
@@ -206,18 +205,30 @@
 		<Border
 			Grid.Row="2"
 			Padding="8"
-			BorderBrush="#E1E1E1"
+			BorderBrush="{DynamicResource BorderBrush}"
 			BorderThickness="0,1,0,0">
-			<Button
-				HorizontalContentAlignment="Left"
-				Command="{Binding OpenAboutCommand}"
-				Padding="10,8"
-				Style="{StaticResource HubButtonGhost}">
-				<StackPanel Orientation="Horizontal">
-					<wpf:FontIcon Margin="0,0,8,0" FontSize="14" Text="&#xE897;"/>
-					<TextBlock Text="说明"/>
-				</StackPanel>
-			</Button>
+			<DockPanel LastChildFill="True">
+				<Button
+					Width="32"
+					Height="32"
+					AutomationProperties.Name="{Binding ThemeToggleText}"
+					DockPanel.Dock="Right"
+					Command="{Binding ToggleThemeCommand}"
+					Style="{StaticResource HubIconButton}"
+					ToolTip="{Binding ThemeToggleText}">
+					<wpf:FontIcon FontSize="14" Text="&#xE706;"/>
+				</Button>
+				<Button
+					HorizontalContentAlignment="Left"
+					Command="{Binding OpenAboutCommand}"
+					Padding="10,8"
+					Style="{StaticResource HubGhostButton}">
+					<StackPanel Orientation="Horizontal">
+						<wpf:FontIcon Margin="0,0,8,0" FontSize="14" Text="&#xE897;"/>
+						<TextBlock Text="说明"/>
+					</StackPanel>
+				</Button>
+			</DockPanel>
 		</Border>
 	</Grid>
 </UserControl>

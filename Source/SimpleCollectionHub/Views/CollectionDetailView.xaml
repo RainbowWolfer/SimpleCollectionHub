@@ -40,7 +40,7 @@
 		<wpf:CommandProxy x:Key="OpenLinkCommand" Command="{Binding OpenLinkCommand}"/>
 	</UserControl.Resources>
 
-	<Grid Background="#FFFFFF">
+	<Grid Background="{DynamicResource RegionBrush}">
 		<Grid.RowDefinitions>
 			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="*"/>
@@ -71,7 +71,7 @@
 
 		<ScrollViewer Grid.Row="1" Padding="16,0,16,12" VerticalScrollBarVisibility="Auto">
 			<StackPanel>
-				<TextBlock FontSize="11" FontWeight="SemiBold" Foreground="#8A8A8A" Text="路径"/>
+				<TextBlock FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource ThirdlyTextBrush}" Text="路径"/>
 				<TextBox
 					Margin="0,4,0,8"
 					IsReadOnly="True"
@@ -81,26 +81,26 @@
 					<Border
 						Margin="0,0,8,0"
 						Padding="6,1"
-						Background="#E8F8EC"
+						Background="{DynamicResource HubOkBackground}"
 						CornerRadius="8"
 						Visibility="{Binding Workspace.DetailExists, Converter={StaticResource Boolean2VisibilityConverter}}">
-						<TextBlock FontSize="11" Foreground="#1E7A32" Text="路径可用"/>
+						<TextBlock FontSize="11" Foreground="{DynamicResource HubOkForeground}" Text="路径可用"/>
 					</Border>
 					<Border
 						Padding="6,1"
-						Background="#FFF6D9"
+						Background="{DynamicResource HubWarnBackground}"
 						CornerRadius="8"
 						Visibility="{Binding Workspace.DetailExists, Converter={StaticResource Boolean2VisibilityReConverter}}">
-						<TextBlock FontSize="11" Foreground="#8A6A00" Text="路径丢失"/>
+						<TextBlock FontSize="11" Foreground="{DynamicResource HubWarnForeground}" Text="路径丢失"/>
 					</Border>
 				</WrapPanel>
 				<Button
 					Margin="0,0,0,16"
 					Command="{Binding OpenOriginalCommand}"
 					Content="打开原目录"
-					Style="{StaticResource HubButton}"/>
+					Style="{StaticResource ButtonDefault}"/>
 
-				<TextBlock FontSize="11" FontWeight="SemiBold" Foreground="#8A8A8A" Text="分组"/>
+				<TextBlock FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource ThirdlyTextBrush}" Text="分组"/>
 				<ComboBox
 					Margin="0,4,0,16"
 					DisplayMemberPath="Label"
@@ -109,7 +109,7 @@
 					SelectedValue="{Binding Workspace.DetailGroupId, UpdateSourceTrigger=PropertyChanged}"
 					SelectedValuePath="GroupId"/>
 
-				<TextBlock FontSize="11" FontWeight="SemiBold" Foreground="#8A8A8A" Text="标签"/>
+				<TextBlock FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource ThirdlyTextBrush}" Text="标签"/>
 				<ItemsControl Margin="0,6,0,8" ItemsSource="{Binding Workspace.DetailTags, Mode=OneWay}">
 					<ItemsControl.ItemsPanel>
 						<ItemsPanelTemplate>
@@ -118,16 +118,16 @@
 					</ItemsControl.ItemsPanel>
 					<ItemsControl.ItemTemplate>
 						<DataTemplate>
-							<Border Margin="0,0,6,6" Padding="8,3" Background="#EEF3FF" CornerRadius="8">
+							<Border Margin="0,0,6,6" Padding="8,3" Background="{DynamicResource HubChipBackground}" CornerRadius="8">
 								<StackPanel Orientation="Horizontal">
-									<TextBlock FontSize="12" Foreground="#3557B8" Text="{Binding Mode=OneWay}"/>
+									<TextBlock FontSize="12" Foreground="{DynamicResource HubChipForeground}" Text="{Binding Mode=OneWay}"/>
 									<Button
 										Margin="6,0,0,0"
 										Command="{StaticResource RemoveTagCommand}"
 										CommandParameter="{Binding}"
 										Content="×"
 										FontSize="11"
-										Style="{StaticResource HubButtonGhost}"
+										Style="{StaticResource HubIconButton}"
 										Visibility="{Binding Data.Workspace.IsEditing, Converter={StaticResource Boolean2VisibilityConverter}, Source={StaticResource ViewModel}}"/>
 								</StackPanel>
 							</Border>
@@ -141,7 +141,7 @@
 						DockPanel.Dock="Right"
 						Command="{Binding AddTagCommand}"
 						Content="添加"
-						Style="{StaticResource HubButton}"/>
+						Style="{StaticResource ButtonDefault}"/>
 					<TextBox
 						Margin="0,0,8,0"
 						Text="{Binding Workspace.NewTagText, UpdateSourceTrigger=PropertyChanged}"
@@ -151,7 +151,7 @@
 				<ItemsControl ItemsSource="{Binding Workspace.DetailFields, Mode=OneWay}">
 					<ItemsControl.ItemTemplate>
 						<DataTemplate>
-							<Border Margin="0,0,0,16" Padding="0,0,0,12" BorderBrush="#E1E1E1" BorderThickness="0,0,0,1">
+							<Border Margin="0,0,0,16" Padding="0,0,0,12" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1">
 								<StackPanel>
 									<DockPanel Margin="0,0,0,8">
 										<Button
@@ -160,7 +160,7 @@
 											CommandParameter="{Binding}"
 											Content="删除字段"
 											FontSize="11"
-											Style="{StaticResource HubButtonDanger}"
+											Style="{StaticResource ButtonDashedDanger}"
 											Visibility="{Binding Data.Workspace.IsEditing, Converter={StaticResource Boolean2VisibilityConverter}, Source={StaticResource ViewModel}}"/>
 										<TextBlock
 											FontWeight="SemiBold"
@@ -196,8 +196,11 @@
 													<Grid Width="96" Height="72" Margin="0,0,8,8">
 														<Button
 															Padding="0"
+															HorizontalContentAlignment="Stretch"
+															VerticalContentAlignment="Stretch"
 															Command="{StaticResource OpenLightboxCommand}"
-															CommandParameter="{Binding}">
+															CommandParameter="{Binding}"
+															Style="{StaticResource ButtonCustom}">
 															<Image Stretch="UniformToFill" Source="{Binding Preview, Mode=OneWay}"/>
 														</Button>
 														<Button
@@ -206,7 +209,7 @@
 															Command="{StaticResource RemoveImageCommand}"
 															CommandParameter="{Binding}"
 															Content="×"
-															Style="{StaticResource HubButtonGhost}"
+															Style="{StaticResource HubIconButton}"
 															Visibility="{Binding Data.Workspace.IsEditing, Converter={StaticResource Boolean2VisibilityConverter}, Source={StaticResource ViewModel}}"/>
 													</Grid>
 												</DataTemplate>
@@ -221,12 +224,12 @@
 												Command="{StaticResource ImportImagesCommand}"
 												CommandParameter="{Binding}"
 												Content="导入图片"
-												Style="{StaticResource HubButton}"/>
+												Style="{StaticResource ButtonDefault}"/>
 											<Button
 												Command="{StaticResource PasteImagesCommand}"
 												CommandParameter="{Binding}"
 												Content="粘贴"
-												Style="{StaticResource HubButton}"/>
+												Style="{StaticResource ButtonDefault}"/>
 										</StackPanel>
 									</StackPanel>
 
@@ -240,7 +243,7 @@
 															Command="{StaticResource RemoveLinkCommand}"
 															CommandParameter="{Binding}"
 															Content="×"
-															Style="{StaticResource HubButtonGhost}"
+															Style="{StaticResource HubIconButton}"
 															Visibility="{Binding Data.Workspace.IsEditing, Converter={StaticResource Boolean2VisibilityConverter}, Source={StaticResource ViewModel}}"/>
 														<StackPanel>
 															<Button
@@ -270,7 +273,7 @@
 												Command="{StaticResource AddLinkCommand}"
 												CommandParameter="{Binding}"
 												Content="添加链接"
-												Style="{StaticResource HubButton}"/>
+												Style="{StaticResource ButtonDefault}"/>
 											<StackPanel Margin="0,0,8,0">
 												<TextBox
 													Margin="0,0,0,4"
@@ -286,37 +289,37 @@
 				</ItemsControl>
 
 				<WrapPanel Visibility="{Binding Workspace.IsEditing, Converter={StaticResource Boolean2VisibilityConverter}}">
-					<Button Margin="0,0,8,8" Command="{Binding AddImageFieldCommand}" Content="加图片字段" Style="{StaticResource HubButton}"/>
-					<Button Margin="0,0,8,8" Command="{Binding AddTextFieldCommand}" Content="加文字字段" Style="{StaticResource HubButton}"/>
-					<Button Margin="0,0,0,8" Command="{Binding AddLinkFieldCommand}" Content="加链接字段" Style="{StaticResource HubButton}"/>
+					<Button Margin="0,0,8,8" Command="{Binding AddImageFieldCommand}" Content="加图片字段" Style="{StaticResource ButtonDefault}"/>
+					<Button Margin="0,0,8,8" Command="{Binding AddTextFieldCommand}" Content="加文字字段" Style="{StaticResource ButtonDefault}"/>
+					<Button Margin="0,0,0,8" Command="{Binding AddLinkFieldCommand}" Content="加链接字段" Style="{StaticResource ButtonDefault}"/>
 				</WrapPanel>
 			</StackPanel>
 		</ScrollViewer>
 
-		<Border Grid.Row="2" Padding="16,10" BorderBrush="#E1E1E1" BorderThickness="0,1,0,0">
+		<Border Grid.Row="2" Padding="16,10" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0">
 			<DockPanel>
 				<Button
 					DockPanel.Dock="Left"
 					Command="{Binding RemoveFromLibraryCommand}"
 					Content="从库中移除"
-					Style="{StaticResource HubButtonDanger}"/>
+					Style="{StaticResource ButtonDanger}"/>
 				<StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
 					<Button
 						Margin="0,0,8,0"
 						Command="{Binding BeginEditCommand}"
 						Content="编辑"
-						Style="{StaticResource HubButton}"
+						Style="{StaticResource ButtonDefault}"
 						Visibility="{Binding Workspace.IsEditing, Converter={StaticResource Boolean2VisibilityReConverter}}"/>
 					<Button
 						Margin="0,0,8,0"
 						Command="{Binding CancelEditCommand}"
 						Content="取消"
-						Style="{StaticResource HubButton}"
+						Style="{StaticResource ButtonDefault}"
 						Visibility="{Binding Workspace.IsEditing, Converter={StaticResource Boolean2VisibilityConverter}}"/>
 					<Button
 						Command="{Binding SaveCommand}"
 						Content="保存"
-						Style="{StaticResource HubButtonPrimary}"
+						Style="{StaticResource ButtonPrimary}"
 						Visibility="{Binding Workspace.IsEditing, Converter={StaticResource Boolean2VisibilityConverter}}"/>
 				</StackPanel>
 			</DockPanel>

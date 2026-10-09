@@ -24,14 +24,14 @@
 			Text="SimpleCollectionHub"/>
 		<TextBlock
 			Margin="0,8,0,0"
-			Foreground="#5c5c5c"
+			Foreground="{DynamicResource SecondaryTextBrush}"
 			TextWrapping="Wrap"
 			Text="给已经躺在磁盘上的游戏、音乐、视频目录贴一层封面、截图、文字和链接。原文件继续留在原地。"/>
 		<TextBlock
 			Margin="0,14,0,6"
 			FontWeight="SemiBold"
 			Text="本机库规则"/>
-		<TextBlock Foreground="#5c5c5c" LineHeight="22" TextWrapping="Wrap">
+		<TextBlock Foreground="{DynamicResource SecondaryTextBrush}" LineHeight="22" TextWrapping="Wrap">
 			<Run Text="• 元数据只存在 %LocalAppData%\RainbowWolfer\SimpleCollectionHub\（SQLite + Media）。"/>
 			<LineBreak/>
 			<Run Text="• 不会在绑定路径新建、修改或删除任何文件，包括 sidecar。"/>

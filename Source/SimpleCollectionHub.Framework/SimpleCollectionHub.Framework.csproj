@@ -14,6 +14,8 @@
 	<ItemGroup>
 		<PackageReference Include="DevExpressMvvm" Version="24.1.6" />
 		<PackageReference Include="FolderBrowserEx" Version="1.0.1" />
+		<!-- 与 YiffBrowser 相同的 HandyControl 分支，带浅色/深色主题切换 -->
+		<PackageReference Include="HandyControls" Version="3.6.0" />
 	</ItemGroup>
 
 	<ItemGroup>

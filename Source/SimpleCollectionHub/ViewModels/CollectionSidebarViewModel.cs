@@ -16,7 +16,8 @@ namespace SimpleCollectionHub.ViewModels;
 internal class CollectionSidebarViewModel(
 	ICollectionWorkspace workspace,
 	ILibraryService libraryService,
-	IAppSettingsService settingsService
+	IAppSettingsService settingsService,
+	IAppThemeService themeService
 ) : ViewModelBaseEx
 {
 	public ICollectionWorkspace Workspace => workspace;
@@ -39,6 +40,31 @@ internal class CollectionSidebarViewModel(
 	}
 
 	public IDelegateCommand ClearFiltersCommand => field ??= new DelegateCommand(workspace.ClearSidebarFilters);
+
+	/// <summary>主题按钮的提示。深色时提示切回浅色。</summary>
+	public string ThemeToggleText
+	{
+		get => GetProperty(() => ThemeToggleText);
+		private set => SetProperty(() => ThemeToggleText, value);
+	}
+
+	public IDelegateCommand ToggleThemeCommand => field ??= new DelegateCommand(ToggleTheme);
+	private void ToggleTheme()
+	{
+		themeService.ToggleTheme();
+		RefreshThemeText();
+	}
+
+	protected override void LoadedOnce()
+	{
+		base.LoadedOnce();
+		RefreshThemeText();
+	}
+
+	private void RefreshThemeText()
+	{
+		ThemeToggleText = themeService.IsDarkTheme ? "切换为浅色" : "切换为深色";
+	}
 
 	public IDelegateCommand ToggleTagCommand => field ??= new DelegateCommand<TagChipModel>(ToggleTag);
 	private void ToggleTag(TagChipModel chip)

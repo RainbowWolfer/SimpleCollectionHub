@@ -63,6 +63,8 @@ public partial class App : ApplicationBase
 		base.BeforeLoadingModules();
 
 		ResourceKeys.Initialize();
+		// 启动页出现之前就把主题套上，避免先闪一帧浅色
+		AppTheme.Apply(AppSettingsService.Model.IsDarkTheme);
 	}
 
 	/// <summary>

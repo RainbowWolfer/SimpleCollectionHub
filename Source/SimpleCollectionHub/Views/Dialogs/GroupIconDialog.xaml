@@ -34,7 +34,7 @@
 			<Border
 				Width="40"
 				Height="40"
-				Background="#f3f3f3"
+				Background="{DynamicResource SecondaryRegionBrush}"
 				CornerRadius="8">
 				<wpf:FontIcon
 					HorizontalAlignment="Center"
@@ -74,8 +74,8 @@
 								<Style TargetType="Button" BasedOn="{StaticResource HubIconPickButton}">
 									<Style.Triggers>
 										<DataTrigger Binding="{Binding IsSelected, Mode=OneWay}" Value="True">
-											<Setter Property="BorderBrush" Value="#326CF3"/>
-											<Setter Property="Background" Value="#E8EFFE"/>
+											<Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
+											<Setter Property="Background" Value="{DynamicResource SecondaryRegionBrush}"/>
 										</DataTrigger>
 									</Style.Triggers>
 								</Style>
@@ -109,7 +109,7 @@
 								<Style TargetType="Button" BasedOn="{StaticResource HubColorSwatch}">
 									<Style.Triggers>
 										<DataTrigger Binding="{Binding IsSelected, Mode=OneWay}" Value="True">
-											<Setter Property="BorderBrush" Value="#1B1B1B"/>
+											<Setter Property="BorderBrush" Value="{DynamicResource PrimaryTextBrush}"/>
 										</DataTrigger>
 									</Style.Triggers>
 								</Style>

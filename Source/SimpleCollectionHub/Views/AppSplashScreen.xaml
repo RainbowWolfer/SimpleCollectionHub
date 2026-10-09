@@ -21,7 +21,7 @@
 	WindowStyle="None"
 	mc:Ignorable="d">
 
-	<Border Margin="15" Background="White" CornerRadius="8">
+	<Border Margin="15" Background="{DynamicResource RegionBrush}" CornerRadius="8">
 		<Border.Effect>
 			<DropShadowEffect
 				BlurRadius="15"
@@ -42,13 +42,13 @@
 					HorizontalAlignment="Center"
 					FontSize="28"
 					FontWeight="Bold"
-					Foreground="#2D2D30"
+					Foreground="{DynamicResource PrimaryTextBrush}"
 					Text="{Binding AppManager.AppName}"/>
 				<TextBlock
 					Margin="0,8,0,0"
 					HorizontalAlignment="Center"
 					FontSize="14"
-					Foreground="#686868"
+					Foreground="{DynamicResource SecondaryTextBrush}"
 					Text="{Binding AppManager.AppVersionFullString}"/>
 			</StackPanel>
 
@@ -57,7 +57,7 @@
 				Margin="25,0,25,8"
 				HorizontalAlignment="Left"
 				FontSize="12"
-				Foreground="#888888"
+				Foreground="{DynamicResource ThirdlyTextBrush}"
 				Text="{Binding Status}"/>
 
 			<ProgressBar
@@ -66,8 +66,8 @@
 				Margin="25,0,25,25"
 				BorderThickness="0"
 				wpf:ProgressBarExtension.Progress="{Binding Progress}"
-				Background="#EFEFEF"
-				Foreground="#007ACC"/>
+				Background="{DynamicResource SecondaryRegionBrush}"
+				Foreground="{DynamicResource PrimaryBrush}"/>
 		</Grid>
 	</Border>
 

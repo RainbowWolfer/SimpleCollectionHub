@@ -39,13 +39,13 @@
 					<Style TargetType="Button" BasedOn="{StaticResource HubCardButton}">
 						<Style.Triggers>
 							<DataTrigger Binding="{Binding IsSelected, Mode=OneWay}" Value="True">
-								<Setter Property="BorderBrush" Value="#326CF3"/>
+								<Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
 							</DataTrigger>
 						</Style.Triggers>
 					</Style>
 				</Button.Style>
 				<StackPanel>
-					<Grid Height="{Binding CoverHeight, Mode=OneWay}" Background="#D7DEEA">
+					<Grid Height="{Binding CoverHeight, Mode=OneWay}" Background="{DynamicResource HubCoverBrush}">
 						<Image
 							Stretch="UniformToFill"
 							Source="{Binding Cover, Mode=OneWay}"
@@ -66,25 +66,25 @@
 							TextTrimming="CharacterEllipsis"/>
 						<TextBlock
 							FontSize="11"
-							Foreground="#8A8A8A"
+							Foreground="{DynamicResource ThirdlyTextBrush}"
 							Text="{Binding Path, Mode=OneWay}"
 							TextTrimming="CharacterEllipsis"/>
 						<WrapPanel Margin="0,6,0,0">
 							<Border
 								Margin="0,0,6,0"
 								Padding="6,1"
-								Background="#E8F8EC"
+								Background="{DynamicResource HubOkBackground}"
 								CornerRadius="8"
 								Visibility="{Binding Exists, Converter={StaticResource Boolean2VisibilityConverter}}">
-								<TextBlock FontSize="10" Foreground="#1E7A32" Text="路径可用"/>
+								<TextBlock FontSize="10" Foreground="{DynamicResource HubOkForeground}" Text="路径可用"/>
 							</Border>
 							<Border
 								Margin="0,0,6,0"
 								Padding="6,1"
-								Background="#FFF6D9"
+								Background="{DynamicResource HubWarnBackground}"
 								CornerRadius="8"
 								Visibility="{Binding Exists, Converter={StaticResource Boolean2VisibilityReConverter}}">
-								<TextBlock FontSize="10" Foreground="#8A6A00" Text="路径丢失"/>
+								<TextBlock FontSize="10" Foreground="{DynamicResource HubWarnForeground}" Text="路径丢失"/>
 							</Border>
 							<ItemsControl ItemsSource="{Binding Tags, Mode=OneWay}">
 								<ItemsControl.ItemsPanel>
@@ -94,8 +94,8 @@
 								</ItemsControl.ItemsPanel>
 								<ItemsControl.ItemTemplate>
 									<DataTemplate>
-										<Border Margin="0,0,6,0" Padding="6,1" Background="#EEF3FF" CornerRadius="8">
-											<TextBlock FontSize="10" Foreground="#3557B8" Text="{Binding Mode=OneWay}"/>
+										<Border Margin="0,0,6,0" Padding="6,1" Background="{DynamicResource HubChipBackground}" CornerRadius="8">
+											<TextBlock FontSize="10" Foreground="{DynamicResource HubChipForeground}" Text="{Binding Mode=OneWay}"/>
 										</Border>
 									</DataTemplate>
 								</ItemsControl.ItemTemplate>
@@ -115,8 +115,8 @@
 					<Style TargetType="Button" BasedOn="{StaticResource HubListButton}">
 						<Style.Triggers>
 							<DataTrigger Binding="{Binding IsSelected, Mode=OneWay}" Value="True">
-								<Setter Property="BorderBrush" Value="#326CF3"/>
-								<Setter Property="Background" Value="#E8EFFE"/>
+								<Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
+								<Setter Property="Background" Value="{DynamicResource SecondaryRegionBrush}"/>
 							</DataTrigger>
 						</Style.Triggers>
 					</Style>
@@ -131,7 +131,7 @@
 					<Border
 						Width="44"
 						Height="44"
-						Background="#D7DEEA"
+						Background="{DynamicResource HubCoverBrush}"
 						CornerRadius="6">
 						<Image Stretch="UniformToFill" Source="{Binding Cover, Mode=OneWay}"/>
 					</Border>
@@ -146,14 +146,14 @@
 						Grid.Column="2"
 						VerticalAlignment="Center"
 						FontSize="11"
-						Foreground="#8A8A8A"
+						Foreground="{DynamicResource ThirdlyTextBrush}"
 						Text="{Binding Path, Mode=OneWay}"
 						TextTrimming="CharacterEllipsis"/>
 					<TextBlock
 						Grid.Column="3"
 						VerticalAlignment="Center"
 						FontSize="11"
-						Foreground="#8A8A8A"
+						Foreground="{DynamicResource ThirdlyTextBrush}"
 						Text="{Binding GroupPath, Mode=OneWay}"
 						TextTrimming="CharacterEllipsis"/>
 				</Grid>
@@ -161,7 +161,7 @@
 		</DataTemplate>
 	</UserControl.Resources>
 
-	<Grid Background="#F3F3F3">
+	<Grid Background="{DynamicResource BackgroundBrush}">
 		<Grid.RowDefinitions>
 			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="*"/>
@@ -189,7 +189,7 @@
 					VerticalContentAlignment="Center"/>
 				<Border
 					Margin="0,0,8,4"
-					Background="#ECECEC"
+					Background="{DynamicResource SecondaryRegionBrush}"
 					CornerRadius="7"
 					Padding="2">
 					<StackPanel Orientation="Horizontal">
@@ -198,8 +198,8 @@
 								<Style TargetType="Button" BasedOn="{StaticResource HubSegmentButton}">
 									<Style.Triggers>
 										<DataTrigger Binding="{Binding Workspace.IsCardsView, Mode=OneWay}" Value="True">
-											<Setter Property="Background" Value="#FFFFFF"/>
-											<Setter Property="Foreground" Value="#1B1B1B"/>
+											<Setter Property="Background" Value="{DynamicResource RegionBrush}"/>
+											<Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
 										</DataTrigger>
 									</Style.Triggers>
 								</Style>
@@ -210,8 +210,8 @@
 								<Style TargetType="Button" BasedOn="{StaticResource HubSegmentButton}">
 									<Style.Triggers>
 										<DataTrigger Binding="{Binding Workspace.IsListView, Mode=OneWay}" Value="True">
-											<Setter Property="Background" Value="#FFFFFF"/>
-											<Setter Property="Foreground" Value="#1B1B1B"/>
+											<Setter Property="Background" Value="{DynamicResource RegionBrush}"/>
+											<Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
 										</DataTrigger>
 									</Style.Triggers>
 								</Style>
@@ -223,12 +223,12 @@
 					Margin="0,0,8,4"
 					Command="{Binding OpenAddGroupCommand}"
 					Content="新建分组"
-					Style="{StaticResource HubButton}"/>
+					Style="{StaticResource ButtonDefault}"/>
 				<Button
 					Margin="0,0,0,4"
 					Command="{Binding OpenAddItemCommand}"
 					Content="添加条目"
-					Style="{StaticResource HubButtonPrimary}"/>
+					Style="{StaticResource ButtonPrimary}"/>
 			</WrapPanel>
 			<StackPanel>
 				<ItemsControl ItemsSource="{Binding Workspace.Crumbs, Mode=OneWay}">
@@ -248,7 +248,7 @@
 									Style="{StaticResource HubLinkButton}"/>
 								<TextBlock
 									Margin="4,0"
-									Foreground="#C0C0C0"
+									Foreground="{DynamicResource ThirdlyTextBrush}"
 									Text="/"
 									Visibility="{Binding IsCurrent, Converter={StaticResource Boolean2VisibilityReConverter}}"/>
 							</StackPanel>
@@ -264,7 +264,7 @@
 						Margin="10,0,0,0"
 						VerticalAlignment="Bottom"
 						FontSize="12"
-						Foreground="#8A8A8A"
+						Foreground="{DynamicResource ThirdlyTextBrush}"
 						Text="{Binding Workspace.PageCountText, Mode=OneWay}"/>
 				</StackPanel>
 			</StackPanel>
@@ -317,7 +317,7 @@
 										Height="1"
 										Margin="8,0,0,0"
 										VerticalAlignment="Center"
-										Background="#E1E1E1"/>
+										Background="{DynamicResource BorderBrush}"/>
 								</DockPanel>
 								<ItemsControl ItemTemplate="{StaticResource ItemCardTemplate}" ItemsSource="{Binding Items, Mode=OneWay}">
 									<ItemsControl.ItemsPanel>
@@ -346,7 +346,7 @@
 						HorizontalAlignment="Center"
 						Command="{Binding OpenAddItemCommand}"
 						Content="添加条目"
-						Style="{StaticResource HubButtonPrimary}"/>
+						Style="{StaticResource ButtonPrimary}"/>
 				</StackPanel>
 			</Grid>
 		</ScrollViewer>
